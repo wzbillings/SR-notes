@@ -1,0 +1,23 @@
+project:
+  type: book
+
+book:
+  title: "Statistical Rethinking notes and exercises"
+  author: "Zane Billings"
+  date: "6/21/2022"
+  chapters:
+    - preface.qmd
+    - cp1.qmd
+    - cp2.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
+
+
+

@@ -1,0 +1,7 @@
+# Preface {.unnumbered}
+
+For Summer 2022, I decided to read "Statistical Rethinking" by Richard McElreath (@sr). This book contains my notes on the chapter and my solutions to the exercises. I typically don't take very detailed notes, so those will likely only be what I consider the key points of the chapter or the parts that I find difficult to remember.
+
+I will attempt to complete every exercise, but if I get stuck for too long or I'm on some other deadline (see [my now page](https://wzbillings.com/now) to see what else I might be working on), that may not happen.
+
+Most of all, I plan to "have fun with it."
