@@ -1,8 +1,16 @@
-# Chapter 1
+# The Golem of Prague
 
-blah text
+This chapter covers McElreath's perspectives on statistical modeling and causal inference, and gives a description of how the book will address issues with current statistical practice and the tools that will be used.
 
 ## Chapter notes
+
+* The statistical model as a golem: models cannot think or see context. They are designed to do specific jobs and carry out their job exactly as they are instructed to, without regard for the consequences. Golems can make numbers, but we have to make golems and interpret the results.
+* Statistics often lacks a coherent epistemiology. We need to understand how statistical models related to causal models, and how causal models relate to scientific hypotheses.
+* "Folk Popperism:" many scientists believe that null hypothesis significance testing reflects Popper's belief that scientific hypotheses must be falsifiable. But really, one statistical model is related to multiple process models, and one process model is related to many scientific hypotheses.
+* Additionally, the NHST paradigm often ignores the fallibility of measurements and the idea that falsification can be spurious. And continuous hypotheses cannot simply be falsified.
+* My favorite quote from this chapter (and it is full of great quotes): "So, if attempting to mimic falsification is not a genreally useful approach to statistical methods, what are we to do? We are to model."
+* The rest of the chapter details the approaches that the book will take with respect to causal modeling and bayesian analysis methods.
+* An equally good title for this chapter might be "the statistical nihilist's manifesto."
 
 ## Exercises
 

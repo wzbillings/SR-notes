@@ -2,29 +2,43 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "SR-Notes",
+    "title": "Statistical Rethinking notes and exercises",
     "section": "",
-    "text": "Preface\nThis is a Quarto book.\nTo learn more about Quarto books visit https://quarto.org/docs/books.\n\n1 + 1\n\n[1] 2"
+    "text": "For Summer 2022, I decided to read “Statistical Rethinking” by Richard McElreath (McElreath (2020)). This book contains my notes on the chapter and my solutions to the exercises. I typically don’t take very detailed notes, so those will likely only be what I consider the key points of the chapter or the parts that I find difficult to remember.\nI will attempt to complete every exercise, but if I get stuck for too long or I’m on some other deadline (see my now page to see what else I might be working on), that may not happen.\nMost of all, I plan to “have fun with it.”\n\n\n\n\nMcElreath, Richard. 2020. Statistical Rethinking: A Bayesian Course with Examples in R and Stan. Second. New York: Chapman and Hall/CRC. https://doi.org/10.1201/9780429029608."
   },
   {
-    "objectID": "intro.html",
-    "href": "intro.html",
-    "title": "1  Introduction",
+    "objectID": "cp1.html",
+    "href": "cp1.html",
+    "title": "1  The Golem of Prague",
     "section": "",
-    "text": "This is a book created from markdown and executable code.\nSee Knuth (1984) for additional discussion of literate programming.\n\n1 + 1\n\n[1] 2\n\n\n\n\n\n\nKnuth, Donald E. 1984. “Literate Programming.” Comput. J. 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97."
+    "text": "This chapter covers McElreath’s perspectives on statistical modeling and causal inference, and gives a description of how the book will address issues with current statistical practice and the tools that will be used."
   },
   {
-    "objectID": "summary.html",
-    "href": "summary.html",
+    "objectID": "cp1.html#chapter-notes",
+    "href": "cp1.html#chapter-notes",
+    "title": "1  The Golem of Prague",
+    "section": "1.1 Chapter notes",
+    "text": "1.1 Chapter notes\n\nThe statistical model as a golem: models cannot think or see context. They are designed to do specific jobs and carry out their job exactly as they are instructed to, without regard for the consequences. Golems can make numbers, but we have to make golems and interpret the results.\nStatistics often lacks a coherent epistemiology. We need to understand how statistical models related to causal models, and how causal models relate to scientific hypotheses.\n“Folk Popperism:” many scientists believe that null hypothesis significance testing reflects Popper’s belief that scientific hypotheses must be falsifiable. But really, one statistical model is related to multiple process models, and one process model is related to many scientific hypotheses.\nAdditionally, the NHST paradigm often ignores the fallibility of measurements and the idea that falsification can be spurious. And continuous hypotheses cannot simply be falsified.\nMy favorite quote from this chapter (and it is full of great quotes): “So, if attempting to mimic falsification is not a genreally useful approach to statistical methods, what are we to do? We are to model.”\nThe rest of the chapter details the approaches that the book will take with respect to causal modeling and bayesian analysis methods.\nAn equally good title for this chapter might be “the statistical nihilist’s manifesto.”"
+  },
+  {
+    "objectID": "cp1.html#exercises",
+    "href": "cp1.html#exercises",
+    "title": "1  The Golem of Prague",
+    "section": "1.2 Exercises",
+    "text": "1.2 Exercises\n(This space intentionally left blank.)"
+  },
+  {
+    "objectID": "cp2.html",
+    "href": "cp2.html",
     "title": "2  Summary",
     "section": "",
-    "text": "In summary, this book has no content whatsoever.\n\n1 + 1\n\n[1] 2"
+    "text": "1 + 1\n\n[1] 2"
   },
   {
     "objectID": "references.html",
     "href": "references.html",
     "title": "References",
     "section": "",
-    "text": "Knuth, Donald E. 1984. “Literate Programming.” Comput.\nJ. 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97."
+    "text": "McElreath, Richard. 2020. Statistical Rethinking:\nA Bayesian Course with Examples in\nR and Stan. Second. New\nYork: Chapman and Hall/CRC. https://doi.org/10.1201/9780429029608."
   }
 ]
