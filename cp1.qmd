@@ -1,9 +1,9 @@
-# Introduction
+# Chapter 1
 
-This is a book created from markdown and executable code.
+blah text
 
-See @knuth84 for additional discussion of literate programming.
+## Chapter notes
 
-```{r}
-1 + 1
-```
+## Exercises
+
+(This space intentionally left blank.)

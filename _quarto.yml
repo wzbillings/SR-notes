@@ -6,7 +6,7 @@ book:
   author: "Zane Billings"
   date: "6/21/2022"
   chapters:
-    - preface.qmd
+    - index.qmd
     - cp1.qmd
     - cp2.qmd
     - references.qmd
