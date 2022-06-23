@@ -1,7 +1,7 @@
-# Summary
+# Small Worlds and Large Worlds
 
-In summary, this book has no content whatsoever.
+In this chapter, the basics of Bayesian probability models and updating are described using a motivating example where the percent coverage of water on Earth is estimated by tossing an inflatable globe.
 
-```{r}
-1 + 1
-```
+## Chapter notes
+
+## Exercises

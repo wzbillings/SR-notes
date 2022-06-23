@@ -1,10 +1,16 @@
 project:
   type: book
+  output-dir: docs
+  output-file: "Zane-SR-Notes"
 
 book:
   title: "Statistical Rethinking notes and exercises"
   author: "Zane Billings"
   date: "6/21/2022"
+  repo-url: https://github.com/wzbillings/SR-notes/
+  repo-actions: [issue, source]
+  sharing: [twitter]
+  search: true
   chapters:
     - index.qmd
     - cp1.qmd
@@ -15,7 +21,9 @@ bibliography: references.bib
 
 format:
   html:
-    theme: cosmo
+    theme:
+      light: pulse
+      dark: vapor
 
 
 
