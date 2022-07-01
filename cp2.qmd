@@ -1,7 +1,152 @@
 # Small Worlds and Large Worlds
 
-In this chapter, the basics of Bayesian probability models and updating are described using a motivating example where the percent coverage of water on Earth is estimated by tossing an inflatable globe.
+In this chapter, the basics of Bayesian probability models and updating are described using a motivating example where the percent coverage of water on Earth is estimated by tossing an inflatable globe. This chapter covers the mechanical parts of Bayesian models.
 
 ## Chapter notes
 
+* Distinction between the **small world**, the self-contained world of the model, and the **large world**, the context in which the model is used. Remember that golems can't see context.
+* Bayesian Inference Is Just Counting -- explanation using tree diagrams. I think this is a good example for simple problems but I don't think it generalizes well to real-life data analysis examples.
+* Bayesian updating: if you observe more data, you can use Bayes' Rule to update your plausibilities for each of the possible results.
+* "There is no free lunch...a Bayesian golem must choose an initial plausibility, and a frequentist golem must choose an estimator. Both golems pay for lunch with their assumptions."
+* Bayesian inference doesn't distinguish between data and parameters in the same way that frequentist inference does. Instead, data are observed variable, and parameters are unobserved variables.
+* Likelihoods, priors, posteriors, Bayes' rule, and other things I didn't take notes on were covered in this section.
+* There are multiple numerical techniques for approximating Bayesian models, different "motors" for the golems. These include grid approximation, quadratic approximation, and Markov Chain Monte Carlo. How you fit the model is part of the model (the engine is part of the golem), and different fitting routines have different compromises and advantages.
+* Grid approximation: estimate the posterior probability of several different values of the parameter via brute force. I did a rough version on this in [my blog post on Bayesian updating](https://blog.wzbillings.com/posts/2022-06-24_bayes-diagnostics/).
+	1. Define the grid of posterior values. You have to choose the set of points for evaluation.
+	2. Compute the value of the prior at each parameter value on the grid.
+	3. Compute the likelihood at each parameter value.
+	4. Compute the unstandardized posterior at each parameter value, by multiplying the prior and the likliehood.
+	5. Standardize the posterior by dividing each value by the sum of all values.
+* Quadratic approximation: as the number of parameters increases, the number of evaluations becomes $\text{number of points} ^ \text{number of parameters}$. So more efficient methods (that make more assumptions are needed.) Quap assumes that the posterior is approximately Gaussian near the peak, essentially representing the log-posterior density as a quadratic function. N.b. quadratic approximation improves with the number of data points.
+	1. Find the posterior mode, usually accomplished by some optimization algorithm based on the gradient of the posterior. "The golem does not know where the peak is, but it does know the slope under its feet."
+	2. Estimate the curvature near the peak, which is sufficient to compute a quadratic approximation of the entire posterior distribution.
+* See pp 41--43 for grid and quadratic approximation examples.
+* Markov chain Monte Carlo: useful for computing many models that fail for grid or quadratic approximation, and may have thousands of parameters. The final posterior may not even have a closed form. MCMC techniques rely on sampling from the posterior distribution rather than directly attempting to approximate the posterior. Since McElreath didn't run his MCMC example in the book, I've included it here because I wanted to see the result.
+
+```{r MCMC example}
+set.seed(370)
+n_samples <- 10000
+p <- rep(NA, n_samples)
+p[1] <- 0.5
+w <- 6
+l <- 3
+for (i in 2:n_samples) {
+	p_new <- rnorm(1, p[i-1], 0.1)
+	if (p_new < 0) {p_new <- abs(p_new)}
+	if (p_new > 1) {p_new <- 2 - p_new}
+	q0 <- dbinom(w, w + l, p[i-1])
+	q1 <- dbinom(w, w + l, p_new)
+	p[i] <- ifelse(runif(1) < q1/q0, p_new, p[i-1])
+}
+
+plot(density(p), xlim = c(0, 1))
+curve(dbeta(x, w + 1, l + 1), lty = 2, add = TRUE)
+```
+
 ## Exercises
+
+2E1. The expression corresponding to the statement *the probability of rain on Monday* is
+$$\text{Pr}(\text{rain} \mid \text{Monday}) = \frac{\text{Pr}(\text{rain, Monday})}{\text{Pr}(\text{Monday})}.$$
+
+2E2. The statement corresponding to the expression
+$$\text{Pr}(\text{Monday} \mid \text{rain})$$
+is **the probability that it is Monday, given that it is raining**.
+
+2E3. The expression correspondonding to the statement **the probability that it is Monday, given that it is raining** is
+$$ \text{Pr}(\text{Monday} \mid \text{rain}) = \frac{\text{Pr}(\text{rain, Monday})}{\text{Pr}(\text{rain})} = \frac{\text{Pr}(\text{rain} \mid \text{Monday})\text{Pr}(\text{Monday})}{\text{Pr}(\text{rain})}$$
+
+2E4. Based on Bruno de Finetti's statement "PROBABILITY DOES NOT EXIST," the statement *the probability of water is 0.7* from the earlier example is a statement about our beliefs. We know that there are several other factors underlying the globe-tossing experiment, but we cannot measure all of those factors, but sweeping them under the rug, we believe that about 70% of the time, our result should be water. The frequentist interpretation of this is as a long-run average probability, but in the bayesian interpretation, this is our prior belief for the next time we perform the experiment.
+
+2M1. Assuming a uniform prior for $p$, compute the grid approximate posterior for each of the following sets of observations: `W, W, W`, `W, W, W, L`, and `L, W, W, L, W, W, W`.
+	
+```{r 2M1 (1)}
+# Define a function that computes the grid-approximate posterior with uniform
+# prior for p given a sampled number of water and land tosses.
+globe_post <- function(w, l) {
+	# Define the grid of points to evaluate
+	p_grid <- seq(from = 0, to = 1, by = 0.01)
+	
+	# Uniform prior on p: f(x) = 1 / (1 - 0) = 1 for all p
+	prior <- rep(1, times = length(p_grid))
+	
+	# Compute the likelihood over the grid given the observed sample
+	likelihood <- dbinom(w, size = w + l, prob = p_grid)
+	
+	# Compute the unstandardized posterior
+	unstd.posterior <- likelihood * prior
+	
+	# Standardize the posterior
+	posterior <- unstd.posterior / sum(unstd.posterior)
+	
+	# Make the plot
+	plot(p_grid, posterior, type = "b", xlab = "P(water)",
+		 ylab = "Posterior probability")
+	mtext(paste(length(p_grid), "points:", w, "W,", l, "L"))
+	
+	# Invisibly return posterior density estimate
+	invisible(posterior)
+}
+
+par(mfrow = c(1, 3))
+globe_post(3, 0)
+globe_post(3, 1)
+globe_post(5, 2)
+```
+
+
+2M2. Repeat the grid approximate calculations assuming a prior for $p$ of the form
+$$f(p) = \begin{cases} 0, & p < 0.5 \\ k, & p \geq 0.5\end{cases}.$$
+Note that for $\int_0^1 f(p) \ dp = 1,$ we must have $k = 2$.
+
+```{r}
+globe_post_step_prior <- function(w, l) {
+	# Define the grid of points to evaluate
+	p_grid <- seq(from = 0, to = 1, by = 0.01)
+	
+	# Uniform prior on p: f(x) = 1 / (1 - 0) = 1 for all p
+	prior <- ifelse(p_grid < 0.5, 0, 1)
+	
+	# Compute the likelihood over the grid given the observed sample
+	likelihood <- dbinom(w, size = w + l, prob = p_grid)
+	
+	# Compute the unstandardized posterior
+	unstd.posterior <- likelihood * prior
+	
+	# Standardize the posterior
+	posterior <- unstd.posterior / sum(unstd.posterior)
+	
+	# Make the plot
+	plot(p_grid, posterior, type = "b", xlab = "P(water)",
+		 ylab = "Posterior probability")
+	mtext(paste(length(p_grid), "points:", w, "W,", l, "L"))
+	
+	# Invisibly return posterior density estimate
+	invisible(posterior)
+}
+
+par(mfrow = c(1, 3))
+globe_post_step_prior(3, 0)
+globe_post_step_prior(3, 1)
+globe_post_step_prior(5, 2)
+```
+
+2M3. We want to compute $\text{Pr}(\text{Earth} \mid \text{land})$ given the following information.
+	* $\text{Pr}(\text{land} \mid \text{Earth}) = 0.3$
+	* $\text{Pr}(\text{land} \mid \text{Mars}) = 1.0$
+	* $\text{Pr}(\text{Earth}) = \text{Pr}(\text{Mars}) = 0.5$
+	
+	And we can deduce that
+	$$\text{Pr}(\text{land}) = \text{Pr}(\text{land} \mid \text{Earth})}\cdot\text{Pr}(\text{Earth}) + \text{Pr}(\text{land} \mid \text{Mars})\cdot\text{Pr}(\text{Mars}) = $$
+
+So we compute
+$$\text{Pr}(\text{Earth} \mid \text{land}) = \frac{\text{Pr}(\text{land} \mid \text{Earth})\cdot\text{Pr}(\text{Earth})}{\text{Pr}(\text{land})}$$
+
+
+
+
+
+
+
+
+
+
