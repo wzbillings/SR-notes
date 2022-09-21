@@ -1,0 +1,468 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+# Geocentric Models
+
+This chapter discusses basic Bayesian model fitting with grid and quadratic approximations. The title, "geocentric models," refers to models that make good predictions, but do not provide causal information about a question. One of these examples is linear regression. This chapter gives examples of basic bayesian linear regression and includes details such as prior predictive checks and how to fit curves with polynomials and b-splines.
+
+## Chapter notes
+
+* Normal distributions arise from sums of random fluctuations. Lognormal distributions arise from products of random fluctuations. This property explains why normal distributions are so good at modeling real world data (ontological justification).
+* Normal distributions can also be justified by the principle of maximum entropy -- if all we are willing to specify about a distribution is its mean and variance, then the normal distribution contains the least amount of information (epistemological justification).
+* Index coding (as opposed to dummy coding or similar methods) makes specification of priors for categorical variables easier.
+* The **prior predictive simulation**, drawing samples from the distribution implied by the priors, is essential for ensuring that our priors are reasonable. Note that we should not compare the prior predictive simulation to the observed data, only to our preexisting knowledge of constraints on the model.
+* Many models which are written in the "plus epsilon" form (see pg 81) (typical for linear models) can be rewritten in this more general framework, which will be easier for non-Gaussian models.
+* **Quadratic approximation**, estimating the peak of the posterior distribution with a multivariate normal distribution, is easier than grid approximation and works well when the posterior is approximately Gaussian (many simple examples are). The peak of the quadratic approximate posterior is the *maximum a posteriori* estimate.
+* Recall that even though grid and quadratic approximate posteriors provide an actual estimate of the posterior distribution, we can (and should) still sample from the posterior. This mimics the process for inference on more complicated models that must be fit with MCMC algorithms.
+* A **linear model** fits the mean, $\mu$, of an outcome as a linear function of the predictor variable(s) and some parameters. These models are often *geocentric* -- they provide good answers, but often say nothing about causality.
+* Plotting simulations of the posterior distribution can provide a lot of information about the posterior (see pg 99), often much more than tables of calculations alone.
+* These types of Bayesian models incorporate two different types of uncertainty -- uncertainty in parameter values, which is based on the plausibility of parameter values after seeing the data, and uncertainty from sampling processes.
+* We can extend linear models to fit curved patterns in datas in several ways, but two of the easiest are polynomials and b-splines. Priors can be difficult to fit to both, as these models are also geocentric. They can accurately fit curves, but do not describe the mechanism or process that generates curved data in the first place. See pg. 119 for an example of fitting a b-spline model using `rethinking`. One further extension is the generalized additive model (GAM) which incorporates smoothing over continuous predictor variables.
+
+## Exercises
+
+The first few questions are about the following model.
+\begin{align*}
+y_i &\sim \mathrm{Normal}(\mu, \sigma) \\
+\mu &\sim \mathrm{Normal}(0, 10) \\
+\sigma &\sim \mathrm{Exponential}(1)
+\end{align*}
+**4E1.** In the model shown, the line $y_i \sim \mathrm{Normal}(\mu, \sigma)$ is the likelihood.
+
+**4E2.** The model contains two parameters ($\mu$ and $\sigma$).
+
+**4E3.** To use Bayes' theorem to calculate the posterior, we would write
+$$
+\frac{\prod_{i} \mathrm{Normal}(y_i \mid \mu, \sigma) \times \mathrm{Normal}(\mu \mid 0, 10) \times \mathrm{Exponential}(\sigma \mid 1)}{\int\int \prod_{i} \mathrm{Normal}(y_i \mid \mu, \sigma) \times \mathrm{Normal}(\mu \mid 0, 10) \times \mathrm{Exponential}(\sigma \mid 1) \ \mathrm{d}\mu \ \mathrm{d}\sigma}.
+$$
+
+**4E4.** In the model shown below, the linear model is the line $\mu_i = \alpha + \beta x_i$.
+\begin{align*}
+y_i &\sim \mathrm{Normal}(\mu, \sigma) \\
+\mu_i &= \alpha + \beta x_i \\
+\alpha &\sim \mathrm{Normal}(0, 10) \\
+\beta &\sim \mathrm{Normal}(0, 1) \\
+\sigma &\sim \mathrm{Exponential}(2)
+\end{align*}
+**4E5.** There are three parameters in the posterior distribution of the model shown ($\alpha$, $\beta$, and $\sigma$) -- $\mu$ is no longer a parameter of the model since it is calculated deterministically.
+
+**4M1.** For the model definition below, simulate observed $y$ values from the prior.
+\begin{align*}
+y_i &\sim \mathrm{Normal}(\mu, \sigma) \\
+\mu &\sim \mathrm{Normal}(0, 10) \\
+\sigma &\sim \mathrm{Exponential}(1)
+\end{align*}
+
+```{r 4M1}
+#| out.width = "100%"
+# Do the simulation
+mu <- rnorm(1000, mean = 0, sd = 10)
+sigma <- rexp(1000, rate = 1)
+y <- rnorm(1000, mu, sigma)
+
+# Plot the results
+layout(matrix(c(1, 2, 3), ncol = 3))
+hist(y, breaks = "FD", main = "y")
+hist(mu, breaks = "FD", main = "mu")
+hist(sigma, breaks = "FD", main = "sigma")
+```
+
+**4M2.** Translate the model into a `quap` formula.
+
+```{r, eval = FALSE}
+y ~ dnorm(mu, sigma),
+mu ~ dnorm(0, 10),
+sigma ~ dexp(1)
+```
+
+**4M3.** Translate the `quap` model formula below into a mathematical model definition.
+
+```{r, eval = FALSE}
+y ~ dnorm(mu, sigma),
+mu <- a + b * x,
+a ~ dnorm(0, 10),
+b ~ dunif(0, 1),
+sigma ~ dexp(1)
+```
+
+\begin{align*}
+y_i &\sim \mathrm{Normal}(\mu_i, \sigma) \\
+\mu_i &= a + b * x_i \\
+a &\sim \mathrm{Normal}(0, 10) \\
+b &\sim \mathrm{Uniform}(0, 1) \\
+\sigma &\sim \mathrm{Exponential}(1)
+\end{align*}
+
+**4M4.** A sample of students is measured for height each year for 3 years. After the third year, you want to fit a linear regression predicting height using year as a predictor. Write down the mathematical model, defending any priors you choose.
+
+\begin{align*}
+y_i &\sim \mathrm{Normal}(\mu_i, \sigma) \\
+\mu_i &= \alpha + \beta * (\mathrm{year}_i - \min \mathrm{year}_i) \\
+\alpha &\sim \mathrm{Normal}(120, 30) \\
+\beta &\sim \mathrm{Log-Normal}(0, 1.5) \\
+\sigma &\sim \mathrm{Exponential}(0, 0.2)
+\end{align*}
+
+To create the priors, I assumed that height was measured in centimeters. If it is not, transforming either the data or the prior coefficients is a simple linear transformation. The prior for the intercept is centered at a relatively small height (around four feet) with a large spread to allow for differences in biological sex or age distributions in the population, since these were not specified in the question. I subtracted the minimum year in the model so that the years would be scaled as 0, 1, 2, 3, instead of the actual numeric value of the year.
+
+In general, we know that height increases over time, so I used a lognormal prior for the slope to enforce a positivity constraint. The prior has a location parameter of 0, allowing for the chance of no growth over the three years, but a wide spread was chosen by experimenting until the prior predictive simulation represented a wide range of possible trajectories with very few trajectories appearing to be biologically unreasonable. Again, the value was chosen by experimenting with prior predictive simulations until the result appeared to capture a large variety of biologically meaningful trajectories.
+
+I assigned an exponential prior to sigma to reflect the fact that all variances are positive, and most tend to be small-ish, but can be large. I had a difficult time with this one in particular because this model structure seems to imply that people can shrink in-between years. This would be possible with measurement error, but I think it would be quite difficult to have measurement error this severe in something like height, which is easy to measure. However, in order to include a constraint that height can only increase, I think we would need to change the likelihood in the model, which we haven't discussed yet in the book, so I didn't want to worry about that. (For example, we could make height lognormally distributed, so random fluctuations would only increase height, as opposed to the current model where random fluctuations can decrease height.)
+
+```{r 4M4}
+#| out.width: 100%
+
+set.seed(100)
+
+# Prior predictive simulation
+a <- rnorm(1000, 120, 30)
+b <- rlnorm(1000, 0, 1.5)
+
+# PPS for mu -- only needs a and b
+layout(matrix(c(1, 2), nrow = 1))
+plot(
+	NULL,
+	xlim = c(-0.05, 3.05),
+	ylim = c(-100, 400),
+	xlab = c("year"),
+	ylab = c("height"),
+	main = "prior predictive simulation of mu"
+)
+abline(h = 0, lty = 2, lwd = 0.5)
+abline(h = 272, lty = 2, lwd = 0.5)
+for (i in 1:1000) {
+	curve(a[i] + b[i] * x, from = 0, to = 3, add = TRUE,
+		  col = rethinking::col.alpha("black", 0.1))
+}
+
+# PPS for y -- for each a, b, simulate variance around the sampled mu.
+plot(
+	NULL,
+	xlim = c(-0.05, 3.05),
+	ylim = c(-100, 400),
+	xlab = c("year"),
+	ylab = c("height"),
+	main = "prior predictive simulation of y"
+)
+abline(h = 0, lty = 2, lwd = 0.5)
+abline(h = 272, lty = 2, lwd = 0.5)
+sigma <- rexp(1000, 1 / 5)
+for (i in 1:1000) {
+	lines(x = 0:3, y = rnorm(4, a[i] + b[i] * 0:3, sigma[i]),
+		  col = rethinking::col.alpha("black", 0.1))
+}
+```
+
+**4M5.** If I were reminded that every student got taller each year, this would not really change my choice of priors, but it does make me consider the same issues. I already accounted for this in the prior for $\beta$. However, it does make me think more about the likelihood I used -- I really dislike that this likelihood allows for fluctuations that show up like this. Height is not measured perfectly, but large variations are uncommon. So perhaps it makes more sense to have quite a small variance parameter ($\sigma$). Or perhaps we could structure the model so that each student has a common variance parameter that does not change every year. We could also consider making the effect of $\beta$ stronger, so that there is an assumed growth effect and not growing each year is more rare. So perhaps we could consider the following adjusted priors.
+
+```{r 4M5}
+#| out.width: 100%
+
+set.seed(100)
+
+# Prior predictive simulation
+a <- rnorm(1000, 120, 30)
+b <- rlnorm(1000, 2, 0.5)
+
+# PPS for mu -- only needs a and b
+layout(matrix(c(1, 2), nrow = 1))
+plot(
+	NULL,
+	xlim = c(-0.05, 3.05),
+	ylim = c(-100, 400),
+	xlab = c("year"),
+	ylab = c("height"),
+	main = "prior predictive simulation of mu"
+)
+abline(h = 0, lty = 2, lwd = 0.5)
+abline(h = 272, lty = 2, lwd = 0.5)
+for (i in 1:1000) {
+	curve(a[i] + b[i] * x, from = 0, to = 3, add = TRUE,
+		  col = rethinking::col.alpha("black", 0.1))
+}
+
+# PPS for y -- for each a, b, simulate variance around the sampled mu.
+plot(
+	NULL,
+	xlim = c(-0.05, 3.05),
+	ylim = c(-100, 400),
+	xlab = c("year"),
+	ylab = c("height"),
+	main = "prior predictive simulation of y"
+)
+abline(h = 0, lty = 2, lwd = 0.5)
+abline(h = 272, lty = 2, lwd = 0.5)
+sigma <- rexp(1000, 1)
+for (i in 1:1000) {
+	lines(x = 0:3, y = rnorm(4, a[i] + b[i] * 0:3, sigma[i]),
+		  col = rethinking::col.alpha("black", 0.1))
+}
+```
+
+These priors still represent a wide range of biologically accurate values, but there is much less internal (within-subject) fluctuation in height between years, and on average, the slope is steeper.
+
+**4M6.** If I had the information that variance among heights for students of the same age is never more than 64cm, this would change my choice of variance prior (assuming that this is *a priori* information and not measured from our sample). If this were measured from the sample, I would not change my priors. But we could consider changing the prior for $\sigma$ like so.
+
+```{r 4M6}
+#| out.width: 100%
+
+set.seed(100)
+
+# Prior predictive simulation
+a <- rnorm(1000, 120, 30)
+b <- rlnorm(1000, 2, 0.5)
+
+# PPS for mu -- only needs a and b
+layout(matrix(c(1, 2), nrow = 1))
+plot(
+	NULL,
+	xlim = c(-0.05, 3.05),
+	ylim = c(-100, 400),
+	xlab = c("year"),
+	ylab = c("height"),
+	main = "prior predictive simulation of mu"
+)
+abline(h = 0, lty = 2, lwd = 0.5)
+abline(h = 272, lty = 2, lwd = 0.5)
+for (i in 1:1000) {
+	curve(a[i] + b[i] * x, from = 0, to = 3, add = TRUE,
+		  col = rethinking::col.alpha("black", 0.1))
+}
+
+# PPS for y -- for each a, b, simulate variance around the sampled mu.
+plot(
+	NULL,
+	xlim = c(-0.05, 3.05),
+	ylim = c(-100, 400),
+	xlab = c("year"),
+	ylab = c("height"),
+	main = "prior predictive simulation of y"
+)
+abline(h = 0, lty = 2, lwd = 0.5)
+abline(h = 272, lty = 2, lwd = 0.5)
+sigma <- runif(1000, 0, 64)
+for (i in 1:1000) {
+	lines(x = 0:3, y = rnorm(4, a[i] + b[i] * 0:3, sigma[i]),
+		  col = rethinking::col.alpha("black", 0.1))
+}
+```
+
+This variance is quite large, which I think intensifies the problem I was previously discussing. Since we consider each annual measurement to be independent, without any "clustering" (we haven't used that word yet so I don't want to use it wrong) by inviduals, following this model to the letter allows for wide fluctuations within the predicted trajectory -- to me it just doesn't make sense for the simulated trajectory to be lower in year $N + 1$ than in year $N$.
+
+**4M7.** Refit model `m4.3` but omit the mean weight `xbar`. Compare the new model's posterior to that or the original model, then compare the posterior predictions.
+
+```{r}
+set.seed(100)
+library(rethinking)
+data(Howell1)
+d <- Howell1
+d2 <- d[d$age >= 18, ]
+m_4m7 <-
+	quap(
+		flist = alist(
+			height ~ dnorm(mu, sigma),
+			mu <- a + b * weight,
+			a ~ dnorm(178, 20),
+			b ~ dlnorm(0, 1),
+			sigma ~ dunif(0, 50)
+		),
+		data = d2
+	)
+```
+
+First we'll look at the posterior summary.
+
+```{r}
+precis(m_4m7)
+```
+
+The intercept estimate is quite different -- the previous model reported the following statistics for a: mean 154.6, sd 0.27, 5.5% 154.17, 94.5% 155.05. So our parameter is much smaller with a larger variance. However, the estimates for b and sigma are almost exactly the same as the estimates given for the previous model (see book pg 99). In particular, we should look at the covariance matrix according to the question.
+
+```{r}
+vcov(m_4m7) |> round(digits = 3)
+```
+
+The variance for a is much higher, while the variance for b and sigma is exactly the same as the book reports. However, there is now some covariance between a and b, and between a and sigma (but not between b and sigma). Next I'll plot a sample of prior predictions. Since the uncertainty is so narrow, I decided to only plot 100 posterior samples. The red line shows the maximum *a posteriori* estimate.
+
+```{r}
+post <- extract.samples(m_4m7, n = 100)
+layout(1)
+plot(
+	x = d2$weight, y = d2$height,
+	xlim = range(d2$weight),
+	ylim = range(d2$height),
+	col = rangi2,
+	xlab = "weight", ylab = "height"
+)
+mtext("Sampled posterior predictions")
+
+# Plot the lines
+for (i in 1:length(post$a)) {
+	curve(post$a[i] + post$b[i] * x,
+				col = col.alpha("black", 0.1),
+				add = TRUE)
+}
+
+abline(
+	a = mean(post$a),
+	b = mean(post$b),
+	col = "red",
+	lty = 2
+)
+```
+
+The posterior predictions look about the same to me. So I guess that even when we use different parametrizations (thus changing the interpretation and scale of our alpha parameter), the predictions still work out to be about the same. I think this is foreshadowing MCMC convergence diagnostics with different parametrizations in the future.
+
+**4M8.** Refit the cherry blossom spline and experiment with changing the number of knots and the width of the prior on the weights. What do you think the combination of these controls?
+
+First we'll just refit the example.
+
+```{r}
+# Data import
+data("cherry_blossoms")
+d <- cherry_blossoms
+d2 <- d[complete.cases(d$doy), ]
+layout(matrix(c(1, 2, 3)))
+
+set.seed(100)
+# Create the splits
+nk <- 15
+knot_list <- quantile(d2$year, probs = seq(0, 1, length.out = nk))
+B <- splines::bs(
+				x = d2$year,
+				# I think we are recreating the default knots and could set
+				# df = 13 instead, but nonetheless we persist
+				knots = knot_list[-c(1, nk)],
+				degree = 3,
+				intercept = TRUE
+			)
+
+# Fit the model
+m1 <-
+	quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + B %*% w,
+			a ~ dnorm(100, 10),
+			w ~ dnorm(0, 10),
+			sigma ~ dexp(1)
+		),
+		data = list(D = d2$doy,	B = B),
+		start = list(w = rep(0, ncol(B)))
+	)
+
+# Get the posterior predictions and plot them
+mu <- link(m1)
+mu_PI <- apply(mu, 2, PI, 0.97)
+plot(d2$year, d2$doy, col = col.alpha(rangi2, 0.3), pch = 16,
+		 xlab = "year", ylab = "Day in year",
+		 main = "Original model")
+shade(mu_PI, d2$year, col = col.alpha("darkgray", 0.5))
+lines(d2$year, y = apply(mu, 2, mean), col = "red", lty = 2)
+
+```
+
+Now let's fit an example with more knots, say 30. This is a dramatic increase but I really want to see the effect.
+
+```{r}
+set.seed(100)
+# Create the splits
+nk <- 30
+knot_list <- quantile(d2$year, probs = seq(0, 1, length.out = nk))
+B <- splines::bs(
+				x = d2$year,
+				# I think we are recreating the default knots and could set
+				# df = 13 instead, but nonetheless we persist
+				knots = knot_list[-c(1, nk)],
+				degree = 3,
+				intercept = TRUE
+			)
+
+# Fit the model
+m2 <-
+	quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + B %*% w,
+			a ~ dnorm(100, 10),
+			w ~ dnorm(0, 10),
+			sigma ~ dexp(1)
+		),
+		data = list(D = d2$doy,	B = B),
+		start = list(w = rep(0, ncol(B)))
+	)
+
+# Get the posterior predictions and plot them
+mu <- link(m2)
+mu_PI <- apply(mu, 2, PI, 0.97)
+plot(d2$year, d2$doy, col = col.alpha(rangi2, 0.3), pch = 16,
+		 xlab = "year", ylab = "Day in year",
+		 main = "More knots")
+shade(mu_PI, d2$year, col = col.alpha("darkgray", 0.5))
+lines(d2$year, y = apply(mu, 2, mean), col = "red", lty = 2)
+```
+
+Now we'll also increase the width of the prior for $w$. Again, I'll increase this dramatically to make the effect easier to see.
+
+```{r}
+set.seed(100)
+# Create the splits
+nk <- 20
+knot_list <- quantile(d2$year, probs = seq(0, 1, length.out = nk))
+B <- splines::bs(
+				x = d2$year,
+				# I think we are recreating the default knots and could set
+				# df = 13 instead, but nonetheless we persist
+				knots = knot_list[-c(1, nk)],
+				degree = 3,
+				intercept = TRUE
+			)
+
+# Fit the model
+m3 <-
+	quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + B %*% w,
+			a ~ dnorm(100, 10),
+			w ~ dnorm(0, 70),
+			sigma ~ dexp(1)
+		),
+		data = list(D = d2$doy,	B = B),
+		start = list(w = rep(0, ncol(B)))
+	)
+
+# Get the posterior predictions and plot them
+mu <- link(m3)
+mu_PI <- apply(mu, 2, PI, 0.97)
+plot(d2$year, d2$doy, col = col.alpha(rangi2, 0.3), pch = 16,
+		 xlab = "year", ylab = "Day in year",
+		 main = "More knots and wider prior")
+shade(mu_PI, d2$year, col = col.alpha("darkgray", 0.5))
+lines(d2$year, y = apply(mu, 2, mean), col = "red", lty = 2)
+```
+
+Hmm, it's hard to see a difference. Let's try plotting the three lines on top of each other.
+
+```{r}
+layout(1)
+plot(
+	x = d2$year, y = d2$doy,
+	xlab = "year", ylab = "Day in year",
+	xlim = range(d2$year), ylim = range(d2$doy),
+	col = col.alpha(rangi2, 0.3), pch = 16
+)
+lines(d2$year, y = apply(link(m1), 2, mean), col = "black")
+lines(d2$year, y = apply(link(m2), 2, mean), col = "blue")
+lines(d2$year, y = apply(link(m3), 2, mean), col = "red")
+legend(
+	x = 1825, y = 123,
+	c("original", "more knots", "more knots and wider prior"),
+	col = c("black", "blue", "red"),
+	lty = c(1, 1, 1)
+)
+```
+
+Yep, from this plot the difference is pretty easy to see. The number of knots and the prior for the weights controls the "wiggliness" (the smoothness or penalty) of the splines. More knots or a wider prior allows for more local variation in the spline curve, whereas constraining the number of knots (or shrinking the weights toward 0) constrains the spline, forcing it to vary less. I guess that the prior on the weights here is equivalent to increasing the penalty term of some other kind of spline, and a higher number of knots allows for a higher degree of interpolation as more inflection points are included.
