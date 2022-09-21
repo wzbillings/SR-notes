@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-0.9.368">
+<meta name="generator" content="quarto-1.1.189">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -11,10 +11,15 @@
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-span.underline{text-decoration: underline;}
-div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -53,7 +58,7 @@ code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
 code span.at { color: #7d9029; } /* Attribute */
 code span.bn { color: #40a070; } /* BaseN */
-code span.bu { } /* BuiltIn */
+code span.bu { color: #008000; } /* BuiltIn */
 code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
 code span.ch { color: #4070a0; } /* Char */
 code span.cn { color: #880000; } /* Constant */
@@ -66,7 +71,7 @@ code span.er { color: #ff0000; font-weight: bold; } /* Error */
 code span.ex { } /* Extension */
 code span.fl { color: #40a070; } /* Float */
 code span.fu { color: #06287e; } /* Function */
-code span.im { } /* Import */
+code span.im { color: #008000; font-weight: bold; } /* Import */
 code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 code span.kw { color: #007020; font-weight: bold; } /* Keyword */
 code span.op { color: #666666; } /* Operator */
@@ -80,26 +85,27 @@ code span.vs { color: #4070a0; } /* VerbatimString */
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
+
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
-<meta name="quarto:offset" content="./">
 <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
-<link href="./references.html" rel="next">
+<meta name="quarto:offset" content="./">
+<link href="./cp3.html" rel="next">
 <link href="./cp1.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link class="quarto-color-scheme" id="quarto-text-highlighting-styles" href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet">
-<link class="quarto-color-scheme quarto-color-alternate" rel="prefetch" id="quarto-text-highlighting-styles" href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link class="quarto-color-scheme" href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet">
-<link class="quarto-color-scheme quarto-color-alternate" rel="prefetch" href="site_libs/bootstrap/bootstrap-dark.min.css">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -175,6 +181,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./cp3.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling the Imaginary</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp4.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Geocentric Models</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./references.html" class="sidebar-item-text sidebar-link">References</a>
   </div>
 </li>
@@ -183,12 +199,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </nav>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc">
+        <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#chapter-notes" id="toc-chapter-notes" class="nav-link active" data-scroll-target="#chapter-notes"> <span class="header-section-number">2.1</span> Chapter notes</a></li>
-  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"> <span class="header-section-number">2.2</span> Exercises</a></li>
+  <li><a href="#chapter-notes" id="toc-chapter-notes" class="nav-link active" data-scroll-target="#chapter-notes"><span class="toc-section-number">2.1</span>  Chapter notes</a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="toc-section-number">2.2</span>  Exercises</a></li>
   </ul>
 <div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/wzbillings/SR-notes/issues/new" class="toc-action">Report an issue</a></p><p><a href="https://github.com/wzbillings/SR-notes/blob/main/cp2.qmd" class="toc-action">View source</a></p></div></div></nav>
     </div>
@@ -199,8 +215,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="quarto-title">
 <h1 class="title d-none d-lg-block"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Small Worlds and Large Worlds</span></h1>
 </div>
-
-
 
 
 
@@ -265,13 +279,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="exercises" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="exercises"><span class="header-section-number">2.2</span> Exercises</h2>
-<p><strong>2E1.</strong> The expression corresponding to the statement <em>the probability of rain on Monday</em> is</p>
-<p><span class="math display">\[\text{Pr}(\text{rain} \mid \text{Monday}) = \frac{\text{Pr}(\text{rain, Monday})}{\text{Pr}(\text{Monday})}.\]</span></p>
-<p><strong>2E2.</strong> The statement corresponding to the expression</p>
-<p><span class="math display">\[\text{Pr}(\text{Monday} \mid \text{rain})\]</span></p>
-<p>is <strong>the probability that it is Monday, given that it is raining</strong>.</p>
-<p><strong>2E3.</strong> The expression correspondonding to the statement <strong>the probability that it is Monday, given that it is raining</strong> is</p>
-<p><span class="math display">\[ \text{Pr}(\text{Monday} \mid \text{rain}) = \frac{\text{Pr}(\text{rain, Monday})}{\text{Pr}(\text{rain})} = \frac{\text{Pr}(\text{rain} \mid \text{Monday})\text{Pr}(\text{Monday})}{\text{Pr}(\text{rain})}\]</span></p>
+<p><strong>2E1.</strong> The expression corresponding to the statement <em>the probability of rain on Monday</em> is <span class="math display">\[\text{Pr}(\text{rain} \mid \text{Monday}) = \frac{\text{Pr}(\text{rain, Monday})}{\text{Pr}(\text{Monday})}.\]</span></p>
+<p><strong>2E2.</strong> The statement corresponding to the expression <span class="math display">\[\text{Pr}(\text{Monday} \mid \text{rain})\]</span> is <strong>the probability that it is Monday, given that it is raining</strong>.</p>
+<p><strong>2E3.</strong> The expression correspondonding to the statement <strong>the probability that it is Monday, given that it is raining</strong> is <span class="math display">\[ \text{Pr}(\text{Monday} \mid \text{rain}) = \frac{\text{Pr}(\text{rain, Monday})}{\text{Pr}(\text{rain})} = \frac{\text{Pr}(\text{rain} \mid \text{Monday})\text{Pr}(\text{Monday})}{\text{Pr}(\text{rain})}\]</span></p>
 <p><strong>2E4.</strong> Based on Bruno de Finetti’s statement “PROBABILITY DOES NOT EXIST,” the statement <em>the probability of water is 0.7</em> from the earlier example is a statement about our beliefs. We know that there are several other factors underlying the globe-tossing experiment, but we cannot measure all of those factors, but sweeping them under the rug, we believe that about 70% of the time, our result should be water. The frequentist interpretation of this is as a long-run average probability, but in the bayesian interpretation, this is our prior belief for the next time we perform the experiment.</p>
 <p>2M1. Assuming a uniform prior for <span class="math inline">\(p\)</span>, compute the grid approximate posterior for each of the following sets of observations: <code>W, W, W</code>, <code>W, W, W, L</code>, and <code>L, W, W, L, W, W, W</code>.</p>
 <div class="cell">
@@ -310,9 +320,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><img src="cp2_files/figure-html/2M1%20(1)-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p><strong>2M2.</strong> Repeat the grid approximate calculations assuming a prior for <span class="math inline">\(p\)</span> of the form</p>
-<p><span class="math display">\[f(p) = \begin{cases} 0, &amp; p &lt; 0.5 \\ k, &amp; p \geq 0.5\end{cases}.\]</span></p>
-<p>Note that for <span class="math inline">\(\int_0^1 f(p) \ dp = 1,\)</span> we must have <span class="math inline">\(k = 2\)</span>.</p>
+<p><strong>2M2.</strong> Repeat the grid approximate calculations assuming a prior for <span class="math inline">\(p\)</span> of the form <span class="math display">\[f(p) = \begin{cases} 0, &amp; p &lt; 0.5 \\ k, &amp; p \geq 0.5\end{cases}.\]</span> Note that for <span class="math inline">\(\int_0^1 f(p) \ dp = 1,\)</span> we must have <span class="math inline">\(k = 2\)</span>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>globe_post_step_prior <span class="ot">&lt;-</span> <span class="cf">function</span>(w, l) {</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Define the grid of points to evaluate</span></span>
@@ -397,15 +405,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 P(\text{twins}) &amp;= P(\text{twins} \mid A) P(A) + P(\text{twins} \mid B) P(B) \\
 &amp;= (0.1)(0.5) + (0.2)(0.5) = 0.15.
 \end{align*}\]</span></p>
-<p>From the definition of conditional probability, we know that</p>
-<p><span class="math display">\[P(\text{twins}^* \mid \text{twins}) = \frac{P(\text{twins}^*, \text{twins})}{P(\text{twins})},\]</span></p>
-<p>so it remains to calculate <span class="math inline">\(P(\text{twins}^*, \text{twins})\)</span>. If we assume that births are independent, we can calculate</p>
+<p>From the definition of conditional probability, we know that <span class="math display">\[P(\text{twins}^* \mid \text{twins}) = \frac{P(\text{twins}^*, \text{twins})}{P(\text{twins})},\]</span> so it remains to calculate <span class="math inline">\(P(\text{twins}^*, \text{twins})\)</span>. If we assume that births are independent, we can calculate</p>
 <p><span class="math display">\[\begin{align*}
 P(\text{twins}^*, \text{twins}) &amp;= P(\text{twins}^*, \text{twins} \mid A)P(A) + P(\text{twins}^*, \text{twins} \mid B)P(B) \\
 &amp;= (0.1)^2(0.5) + (0.2)^2(0.5) = 0.025.
 \end{align*}\]</span></p>
-<p>Then,</p>
-<p><span class="math display">\[P(\text{twins}^* \mid \text{twins}) = \frac{0.025}{0.15} = \frac{1}{6}.\]</span></p>
+<p>Then, <span class="math display">\[P(\text{twins}^* \mid \text{twins}) = \frac{0.025}{0.15} = \frac{1}{6}.\]</span></p>
 <p>So if a panda of unknown species gives birth to twins, the probability that her next birth will also be twins is <span class="math inline">\(1/6\)</span>, given the information we have.</p>
 <p><strong>2H2.</strong> Now we want to find the probability that the panda is species A, given that she gave birth to twins, i.e.&nbsp;<span class="math inline">\(P(A \mid \text{twins})\)</span>. Recall that <span class="math inline">\(P(\text{twins}) = 0.15,\)</span> <span class="math inline">\(P(\text{twins} \mid A) = 0.1,\)</span> and <span class="math inline">\(P(A) = 0.5.\)</span> Then,</p>
 <p><span class="math display">\[P(A \mid \text{twins}) = \frac{(0.5)(0.1)}{0.15} = \frac{1}{3}.\]</span></p>
@@ -413,18 +418,15 @@ P(\text{twins}^*, \text{twins}) &amp;= P(\text{twins}^*, \text{twins} \mid A)P(A
 <p>Since we’ve already estimated <span class="math inline">\(P(A)\)</span> for the first birth, I’ll call this <span class="math inline">\(P(A_\text{prior})\)</span>, instead of working out the entire conditional probability, we can update this estimate with our new information. What we want to calculate is</p>
 <p><span class="math display">\[P(A_\text{posterior}) = \frac{P(A_\text{prior}) P(\text{singleton} \mid A)}{P(\text{singleton})}.\]</span></p>
 <p>Now, the probability of having a singleton is mutually exclusive with the probability of having twins (since we know that these pandas never have more than twins), so <span class="math display">\[P(\text{singleton} \mid A) = 1 - 0.1 = 0.9. \]</span></p>
-<p>We get the singleton probability for pandas of species B in the same way. Next, we need to calculate the probability of a singleton, taking our prior probability that the panda is species A into account. We get</p>
-<p><span class="math display">\[P(\text{singleton}) = \frac{1}{3} (0.9) + \frac{2}{3} (0.8) = \frac{5}{6}.\]</span></p>
-<p>Therefore,</p>
-<p><span class="math display">\[P(A_\text{posterior}) = \frac{(1/3)(0.9)}{5/6} = 0.36.\]</span></p>
+<p>We get the singleton probability for pandas of species B in the same way. Next, we need to calculate the probability of a singleton, taking our prior probability that the panda is species A into account. We get <span class="math display">\[P(\text{singleton}) = \frac{1}{3} (0.9) + \frac{2}{3} (0.8) = \frac{5}{6}.\]</span></p>
+<p>Therefore, <span class="math display">\[P(A_\text{posterior}) = \frac{(1/3)(0.9)}{5/6} = 0.36.\]</span></p>
 <p><strong>2H4.</strong> The new test for panda species has probabilities <span class="math inline">\(P(\text{test } A \mid A) = 0.8\)</span> and <span class="math inline">\(P(\text{test } B \mid B) = 0.65.\)</span> We want to know the probability that our panda is species A, given that her test result was A.</p>
 <p>First we will ignore our prior probability and calculate the probability that any random panda is species A given that they test A.</p>
 <p>We calculate that <span class="math inline">\(P(\text{test } A \mid B) = 1 - 0.65 = 0.35\)</span> and therefore that <span class="math display">\[\begin{align*}
 P(\text{test } A) &amp;= P(A)P(\text{test } A \mid A) + P(B)P(\text{test } B \mid B) \\
 &amp;= (0.5)(0.8) + (0.5)(0.35) = 0.575.
 \end{align*}\]</span></p>
-<p>Then,</p>
-<p><span class="math display">\[P(A \mid \text{test } A) = \frac{(0.5)(0.8)}{0.575} \approx 0.6957.\]</span></p>
+<p>Then, <span class="math display">\[P(A \mid \text{test } A) = \frac{(0.5)(0.8)}{0.575} \approx 0.6957.\]</span></p>
 <p>Now, if we use our prior probability, <span class="math inline">\(P(A_\text{prior}) = 0.36\)</span>, we instead get that</p>
 <p><span class="math display">\[\begin{align*}
 P(\text{test } A) &amp;= (0.36)(0.8) + (0.64)(0.35) = 0.512 \quad\text{and } \\
@@ -437,6 +439,24 @@ P(A \mid \text{test } A) &amp;= \frac{(0.36)(0.8)}{0.512} \approx 0.5612.
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
   const disableStylesheet = (stylesheets) => {
     for (let i=0; i < stylesheets.length; i++) {
       const stylesheet = stylesheets[i];
@@ -466,8 +486,14 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     manageTransitions('#quarto-margin-sidebar .nav-link', false);
     if (alternate) {
       enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
     } else {
       disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
     }
     manageTransitions('#quarto-margin-sidebar .nav-link', true);
     // Switch the toggles
@@ -481,6 +507,16 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
           toggle.classList.remove("alternate");
         }
       }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
     }
   }
   const isFileUrl = () => { 
@@ -583,7 +619,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   for (var i=0; i<noterefs.length; i++) {
     const ref = noterefs[i];
     tippyHover(ref, function() {
-      let href = ref.getAttribute('href');
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
@@ -618,8 +655,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./references.html" class="pagination-link">
-        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./cp3.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling the Imaginary</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
