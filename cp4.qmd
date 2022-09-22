@@ -216,7 +216,7 @@ for (i in 1:1000) {
 These priors still represent a wide range of biologically accurate values, but there is much less internal (within-subject) fluctuation in height between years, and on average, the slope is steeper.
 
 ### 4M6
-If I had the information that variance among heights for students of the same age is never more than 64cm, this would change my choice of variance prior (assuming that this is *a priori* information and not measured from our sample). If this were measured from the sample, I would not change my priors. But we could consider changing the prior for $\sigma$ like so.
+If I had the information that variance among heights for students of the same age is never more than 64cm, this would change my choice of variance prior (assuming that this is *a priori* information and not measured from our sample). If this were measured from the sample, I would not change my priors. But we could consider changing the prior for $\sigma$ like so. Using the empirical rule for normal distributions, I reasoned that 21 is a reasonable constraint for an upper bound on a Uniform prior for sigma -- the resultant likelihood will have approximately 99% of observations within $3 \times 21 = 63$ cm of the mean.
 
 ```{r 4M6}
 #| out-width: "100%"
@@ -255,7 +255,7 @@ plot(
 )
 abline(h = 0, lty = 2, lwd = 0.5)
 abline(h = 272, lty = 2, lwd = 0.5)
-sigma <- runif(1000, 0, 64)
+sigma <- runif(1000, 0, 21)
 for (i in 1:1000) {
 	lines(x = 0:3, y = rnorm(4, a[i] + b[i] * 0:3, sigma[i]),
 		  col = rethinking::col.alpha("black", 0.1))
