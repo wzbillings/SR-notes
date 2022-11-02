@@ -17,6 +17,7 @@ book:
     - cp2.qmd
     - cp3.qmd
     - cp4.qmd
+    - cp5.qmd
     - references.qmd
 
 bibliography: references.bib
