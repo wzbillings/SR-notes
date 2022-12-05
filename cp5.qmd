@@ -51,7 +51,7 @@ with suitable priors, etc. The slope of both $\beta_j$ should be positive. Class
 
 **5M1.** An example of a spurious correlation: I am happy on days when it is sunny outside, and when I get to leave work early. Both of these things individually make me happy, but the weather doesn't determine whether I get to leave work early. (At least not fully anyways. The weather definitely determines how much work I get done, but other external factors control the amount of work I have and the deadlines I need to meet.)
 
-**5M2.** An example of a masked relationship: fill this in when I think of one.
+**5M2.** An example of a masked relationship that I like: supposed you have multiple measurements of how far the accelerator is pressed in a car and the car's speed (taken simultaneously) at multiple time points, and you see no correlation. However, you are then given the measurements of the slope of the road at each of those time points, and you see that, when the slope of the road is taken into account, the two variables are correlated. When the car is going uphill, the accelerator is always pressed further and the speed is always lower, but pressing the accelerator still increases the speed.
 
 **5M3.** I guess a higher divorce rate could cause a higher marriage rate by making more people available to be married. If divorced people tend to get remarried (potentially to non-divorced people), then the overall marriage rate could go up. Addressing this using a multiple linear regression model would be quite difficult, as you would need more data on remarriage and divorce status. It could be difficult to incorporate remarriages into the regression model, maybe an agent-based model would be more intuitive for this.
 
@@ -87,6 +87,7 @@ dat_5m4_l <-
 
 layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2))
 purrr::walk2(dat_5m4_l, names(dat_5m4_l), ~hist(.x, main = .y, breaks = "FD"))
+layout(1)
 ```
 
 When I tried to do this the first time, it turns out that the WaffleDivorce dataset has D.C. in it, but not the state of Nevada? And the table of percent LDS populations I found has Nevada, but not D.C. So I just googled it, and on the Wikipedia page I saw that the percentage was 0.38% in 2014, which is good enough for government work, so I filled it in manually. I didn't transform any of the predictors, but standardizing and transforming them would probably be a good idea. I think a logit transformation would probably be suitable for the percent LDS population but as long as `quap()` converges I won't worry about it too much.
@@ -127,8 +128,336 @@ We can see that for every one percentage increase in the LDS population of a sta
 
 This estimate is probably biased by Utah, which is a strong outlier with 63% LDS population (far more than the second highest state, Idaho, with 24% of the population identifying as LDS).
 
+**5M5.** For this exercise, I'll call the price of gas $G$, obesity $O$, exercise $E$, and eating at restaurants $R$. The dag for this hypothesis looks like this.
 
+```{r}
+dag <- dagitty::dagitty(
+	"dag {
+		G -> E
+		G -> R
+		G -> O
+		E -> O
+		R -> O
+	}"
+)
 
+plot(dagitty::graphLayout(dag))
+```
 
+Therefore, $G$ confounds the relationship of $E$ on $O$ and also confounds the relationship of $R$ on $O$. (The direct causal effect of $G$ on $O$ represents the total impact of any other pathways that we have not measured.) We could capture both of these pathways simultaneously with the multiple regression
+$$\mu_i = \alpha + \beta_E E_i + \beta_R R_i + \beta_G G_i,$$
+where $\mu_i$ is the conditional mean of $O_i$. This model "controls for" the price of gas, and additionally controls for the effect of $E$ and $R$ on each other. If we are certain that $E$ and $R$ are related only though $G$, we could fit the two regression models
+$$\mu_i = \alpha + \beta_E E_i + \beta_G G_i$$
+and
+$$\mu_i = \alpha + \beta_R R_i + \beta_G G_i.$$
+Using these two models, we control for the effect of gas price and obtain the direct causal effect of $E$ and $R$, assuming that $E$ and $R$ do not affect each other at all.
 
+**5H1.** Assuming the DAG for the divorce problem is $M \to A \to D$. The DAG only has one conditional independency: $D$ and $M$ are uncorrelated if we condition on $A$. We can check this using dagitty as well.
+
+```{r}
+dag2 <- dagitty::dagitty("dag {M -> A -> D}")
+dagitty::impliedConditionalIndependencies(dag2)
+```
+
+Now we can check if the data are consistent with this DAG. (We already know that it is, because this is the same conditional independency set as one of the previous example DAGs).
+
+```{r}
+d <-
+	WaffleDivorce |>
+	dplyr::select(
+		D = Divorce,
+		M = Marriage,
+		A = MedianAgeMarriage
+	) |>
+	dplyr::mutate(dplyr::across(tidyselect::everything(), standardize))
+
+# Fit the model without age so we can see the unconditional estimate
+model_noage <-
+		rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + bM * M,
+			a ~ dnorm(0, 0.2),
+			bM ~ dnorm(0, 0.5),
+			sigma ~ dexp(1)
+		),
+		data = d
+	)
+
+# Fit the model with age only
+model_ageonly <-
+	rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + bA * A,
+			a ~ dnorm(0, 0.2),
+			bA ~ dnorm(0, 0.5),
+			sigma ~ dexp(1)
+		),
+		data = d
+	)
+
+# Fit the model with age to see the estimate after conditioning
+model_5h1 <-
+	rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + bM * M + bA * A,
+			a ~ dnorm(0, 0.2),
+			bM ~ dnorm(0, 0.5),
+			bA ~ dnorm(0, 0.5),
+			sigma ~ dexp(1)
+		),
+		data = d
+	)
+
+coeftab_plot(
+	coeftab(model_noage, model_ageonly, model_5h1),
+	par = c("bA", "bM")
+)
+```
+
+We can see that before we add age to the model, the effect of marriage is quit large. But then when we condition on age, the effect is close to zero with a large amount of uncertainty. So it appears that our data are consistent with the conditional independencies of the model. The coefficient for age does not change when we condition it on marriage rate, so this supports our conclusion.
+
+**5H2.** Assuming that this is the true DAG for the divorce example, we want to fit a new model and estimate the counterfactual effect of halving a state's marriage rate $M$.
+
+```{r}
+set.seed(100)
+m_5h2 <-
+	rethinking::quap(
+		flist = alist(
+			## M -> A
+			A ~ dnorm(mu_A, sigma_A),
+			mu_A <- b0_A + bM * M,
+			b0_A ~ dnorm(0, 0.2),
+			bM ~ dnorm(0, 0.5),
+			sigma_A ~ dexp(1),
+			
+			## A -> D
+			D ~ dnorm(mu_D, sigma_D),
+			mu_D <- b0_D + bA * A,
+			b0_D ~ dnorm(0, 0.2),
+			bA ~ dnorm(0, 0.5),
+			sigma_D ~ dexp(1)
+		),
+		data = d
+	)
+
+rethinking::precis(m_5h2)
+
+# Get the halved marriage rate for each state and standardize to model units
+with(
+	WaffleDivorce,
+	M_seq <<- c(
+		((Divorce / 2) - mean(Divorce)) / sd(Divorce),
+		d$D
+	)
+)
+
+sim_dat <- data.frame(M = M_seq)
+s <- sim(m_5h2, data = sim_dat, vars = c("A", "D"))
+res <-
+	s |>
+	# stack the matrix columns on top of each other into one vector
+	lapply(as.vector) |>
+	tibble::as_tibble() |>
+	dplyr::mutate(
+		M = rep(M_seq, each = nrow(s$A))
+	)
+	
+res_diff <-
+	tibble::tibble(
+		A = s$A[, 2] - s$A[, 1],
+		D = s$D[, 2] - s$D[, 1]
+	)
+
+test <-
+	lapply(s, \(x) tibble::tibble(
+		mean = colMeans(x[, 51:100] - x[, 1:50]),
+		lwr = apply(x[, 51:100] - x[, 1:50], 2, rethinking::PI)[1, ],
+		upr = apply(x[, 51:100] - x[, 1:50], 2, rethinking::PI)[2, ]
+	))
+
+test2 <- test$D
+test2 <- cbind(test2, WaffleDivorce)
+
+library(ggplot2)
+ggplot(test2, aes(y = forcats::fct_reorder(Location, mean),
+									x = mean, xmin = lwr, xmax = upr)) +
+	geom_pointrange() +
+	scale_x_continuous(
+		labels = function(x) scales::label_number()((x * sd(WaffleDivorce$Divorce)))
+	) +
+	labs(
+		x = "Counterfactual effect on divorce rate of halving marriage rate (mean, 89% CI)",
+		y = NULL
+	) +
+	zlib::theme_ms()
+```
+
+From the precis, we can derive that for every 1 unit increase in the marriage rate, we expect $\beta_M$ units of change in the median age of marriage, and thus $\beta_A \beta_M$ units of change in the divorce rate, which works out to approximately $(-0.69)(-0.57) = 0.3933$. So if the marriage rate increases by 1 standard deviation, we expect the divorce rate to increase by about 0.4 standard deviations.
+
+We could also (much more easily, in fact, I just didn't think about it until after I did this the hard way) compute the counterfactual effect for a range of values, and then look up whatever we wanted. The divorce rate measurements in the original data are only measured to the nearest tenth, so we just need to simulate the counterfactual effect of every one-tenth unit change in divorce rate over the range of observed rates.
+
+```{r}
+# Generate the sequence
+M_seq <-
+	seq(
+		from = 4,
+		to = 16,
+		by = 0.01
+	)
+# Restandardize it using the original values for model units
+M_seq <- (M_seq - mean(WaffleDivorce$Marriage)) /
+	sd(WaffleDivorce$Marriage)
+
+# Do the simulation
+sim_dat <- data.frame(M = M_seq)
+s <- sim(m_5h2, data = sim_dat, vars = c("A", "D"))
+
+# Clean up the results
+D_res <-
+	tibble::tibble(
+		M = round(M_seq * sd(WaffleDivorce$Marriage) + mean(WaffleDivorce$Marriage),
+							digits = 2),
+		mean = colMeans(s$D),
+		lwr = apply(s$D, 2, rethinking::PI)[1, ],
+		upr = apply(s$D, 2, rethinking::PI)[2, ]
+	) |>
+	dplyr::mutate(
+		dplyr::across(c(mean, lwr, upr), \(x) x * sd(WaffleDivorce$Divorce) +
+										mean(WaffleDivorce$Divorce) |> round(digits = 2))
+	)
+
+manipulated <-
+	WaffleDivorce |>
+	dplyr::transmute(
+		Location, Loc, M = Marriage / 2, orig = Marriage, out = Divorce
+	) |>
+	dplyr::left_join(D_res, by = "M")
+
+# Make the plot
+D_res |>
+	ggplot(aes(x = M, y = mean, ymin = lwr, ymax = upr)) +
+	geom_ribbon(fill = "gray") +
+	geom_line(size = 0.75) +
+	geom_point(
+		data = manipulated,
+		fill = "white",
+		color = "black",
+		shape = 21,
+		stroke = 1.5,
+		size = 3
+	) +
+	labs(
+		x = "Manipulated marriage rate",
+		y = "Counterfactual divorce rate"
+	) +
+	zlib::theme_ms()
+
+# manipulated |>
+# 	dplyr::mutate(id = factor(dplyr::row_number())) |>
+# 	ggplot() +
+# 	geom_segment(
+# 		aes(x = orig, xend = M, y = out, yend = mean, color = id),
+# 		show.legend = FALSE,
+# 		alpha = 0.5
+# 	) +
+# 	geom_point(
+# 		aes(x = M, y = mean, shape = "Counterfactual", fill = id),
+# 		size = 3, color = "black"
+# 	) +
+# 	geom_point(
+# 		aes(x = orig, y = out, shape = "Observed", fill = id),
+# 		size = 3, color = "black"
+# 	) +
+# 	guides(
+# 		fill = guide_none()
+# 	) +
+# 	scale_shape_manual(values = c(21, 22)) +
+# 	labs(
+# 		x = "Marriage rate",
+# 		y = "Divorce rate"
+# 	) +
+# 	zlib::theme_ms()
+```
+
+There we go. The white points here show each of the states if their divorce rate were halved (and the model is true). I didn't label them because I had already spend too much time on this project. There's a lot more I could think of to do on this problem, but instead I decided to move on to the next one instead.
+
+**5H3.** We are given the following DAG for the milk energy problem.
+
+```{r}
+dag3 <- dagitty::dagitty("dag {K <- M -> N -> K}")
+```
+
+We want to compute the counterfactual effect on K of doubling M, accounting for both the direct and indirect paths of causation.
+
+```{r}
+data("milk")
+m <-
+	milk |>
+	dplyr::transmute(
+		N = standardize(neocortex.perc),
+		M = standardize(log(mass)),
+		K = standardize(kcal.per.g)
+	) |>
+	tidyr::drop_na()
+
+m_5h3 <-
+	rethinking::quap(
+		flist = alist(
+			# M -> N
+			N ~ dnorm(mu_n, sigma_n),
+			mu_n <- a_n + b_m * M,
+			a_n ~ dnorm(0, 0.2),
+			b_m ~ dnorm(0, 0.5),
+			sigma_n ~ dexp(1),
+			# M -> K <- N
+			K ~ dnorm(mu_k, sigma_k),
+			mu_k <- a_k + b_m * M + b_n * N,
+			a_k ~ dnorm(0, 0.2),
+			b_n ~ dnorm(0, 0.5),
+			sigma_k ~ dexp(1)
+		),
+		data = m
+	)
+
+rethinking::precis(m_5h3)
+```
+
+In this case, the predictor we want the counterfactual effect of ($M$) is on a log scale, so we should be able to get the effect of halving it (since changes will be proportional on a multiplicative scale). But that's kind of annoying, so we'll do the simulating way anyways.
+
+```{r}
+# Sequence in log units
+M_seq <- seq(from = -3, to = 5, by = 0.01)
+
+# Standardize with original values to model units
+M_seq <- (M_seq - mean(log(milk$mass), na.rm = TRUE)) /
+	sd(log(milk$mass), na.rm = TRUE)
+
+# Simulate the predictions
+sim_dat <- data.frame(M = M_seq)
+s <- sim(m_5h3, data = sim_dat, vars = c("N", "K"))
+
+plot_data <-
+	tibble::tibble(
+		M = exp(sim_dat$M * attr(m$M, "scaled:scale") +
+			attr(m$M, "scaled:center")),
+		K = colMeans(s$K) * attr(m$K, "scaled:scale") +
+			attr(m$K, "scaled:center")
+	)
+plot_PI <- apply(s$K, 2, PI) * attr(m$K, "scaled:scale") +
+			attr(m$K, "scaled:center")
+
+# Plot the counterfactual effect
+plot(
+	plot_data$M, plot_data$K,
+	type = "l",
+	xlab = "manipulated mass (kg)", ylab = "counterfactual kilocalories per gram of milk",
+	xlim = exp(c(-3, 5)),
+	ylim = c(0.1, 1.1)
+)
+shade(plot_PI, plot_data$M)
+mtext("Total counterfactual effect of M on K")
+```
 
