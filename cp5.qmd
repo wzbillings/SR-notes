@@ -9,11 +9,19 @@ This chapter discusses the "causal salad" issue that is really prevelant in epid
 
 ## Chapter notes
 
-
+* This chapter is mainly concerned with the issue of confounding, although it doesn't used the same technical terms that I learned in my epidemiology classes.
+* Specifically, we are concerned with **spurious associations** (positive confounding) where a third variable causes the relationship between two variables to appear stronger than it is;
+* And with **masked relationships** (negative confounding), where a third variable causes the relationship between two variables to appear weaker than it is.
+* This chapter also introduces **Directed Acyclic Graphs (DAGs)** as heuristic graphical causal models for understanding the causal relationships between variables.
+* The **conditional independencies** of DAGs are disccused, which are statements of which variables should be associated with each other in the data or not, given that the DAG is an accurate causal model. DAGs with the same variables and implied conditional independencies are called **Markov Equivalent**.
+* This chapter also discusses three ways to visualize the results of a regression model: predictor residual plots, posterior prediction plots, and counterfactual plots.  In this case, the counterfactual plot does not necessarily mean what I am used to it meaning, it just means we are predicting values which may not have been observed using the model (so in some sense they are counterfactual to our observed data).
+* Finally, this chapter also discusses categorical variables and index coding, which is used by the rethinking package (and later by Stan) rather than the dummy coding used by most R models.
 
 ## Exercises
 
-**5E1.** The linear models
+### 5E1
+
+The linear models
 
 $$\mu_i = \beta_x x_i + \beta_z z_i$$
 and
@@ -25,7 +33,9 @@ is a simple linear regression model and while the third model
 $$\left( \mu_i = \alpha + \beta (x_i - z_i) \right)$$
 involves both $x$ and $z$, the model only has one coefficient and treats their difference as a single explanatory variable.
 
-**5E2.** We could evaluate the claim *animal diversity is linearly related to latitude, but only after controlling for plant diversity* using the linear model
+### 5E2
+
+We could evaluate the claim *animal diversity is linearly related to latitude, but only after controlling for plant diversity* using the linear model
 \begin{align*}
 \text{animal diversity}_i &\sim \mathrm{Likelihood}\left( \mu_i \right) \\
 \mu_i &= \alpha + \beta_1 \left( \mathrm{latitude} \right) + \beta_2 \left( \text{plant diversity} \right)
@@ -33,7 +43,9 @@ involves both $x$ and $z$, the model only has one coefficient and treats their d
 
 where suitable priors are assigned and other appropriate parameters are given for the likelihood function.
 
-**5E3.** We could evaluate the claim *neither amount of funding nor size of laboratory is by itself a good predictor of time to PhD degree; but together these variables are both positively associated with time to degree* using the multiple linear regression
+### 5E3
+
+We could evaluate the claim *neither amount of funding nor size of laboratory is by itself a good predictor of time to PhD degree; but together these variables are both positively associated with time to degree* using the multiple linear regression
 \begin{align*}
 \text{time to PhD}_i &\sim \mathrm{Likelihood}\left( \mu_i \right) \\
 \mu_i &= \alpha + \beta_1 \left( \text{amount of funding} \right) + \beta_2 \left( \text{size of laboratory} \right)
@@ -41,7 +53,9 @@ where suitable priors are assigned and other appropriate parameters are given fo
 
 with suitable priors, etc. The slope of both $\beta_j$ should be positive. Classically, I would probably be inclined to include an interaction term in this model, but we haven't talked about that yet in the book so I didn't.
 
-**5E4.** If we have a single categorical variable with levels $A,$ $B,$ $C,$ and $D,$ (represented as indicator variables), the following linear models are inferentially equivalent:
+### 5E4
+
+If we have a single categorical variable with levels $A,$ $B,$ $C,$ and $D,$ (represented as indicator variables), the following linear models are inferentially equivalent:
 \begin{align*}
 \mu_i &= \alpha + \beta_A A_i + \beta_B B_i + \beta_D D_i, \\
 \mu_i &= \alpha + \beta_B B_i + \beta_C C_i + \beta_D D_i, \\
@@ -49,13 +63,21 @@ with suitable priors, etc. The slope of both $\beta_j$ should be positive. Class
 \mu_i &= \alpha_A \left( 1 - B_i - C_i - D_i \right) + \alpha_B B_i + \alpha_C C_i + \alpha_D D_i.
 \end{align*}
 
-**5M1.** An example of a spurious correlation: I am happy on days when it is sunny outside, and when I get to leave work early. Both of these things individually make me happy, but the weather doesn't determine whether I get to leave work early. (At least not fully anyways. The weather definitely determines how much work I get done, but other external factors control the amount of work I have and the deadlines I need to meet.)
+### 5M1
 
-**5M2.** An example of a masked relationship that I like: supposed you have multiple measurements of how far the accelerator is pressed in a car and the car's speed (taken simultaneously) at multiple time points, and you see no correlation. However, you are then given the measurements of the slope of the road at each of those time points, and you see that, when the slope of the road is taken into account, the two variables are correlated. When the car is going uphill, the accelerator is always pressed further and the speed is always lower, but pressing the accelerator still increases the speed.
+An example of a spurious correlation: I am happy on days when it is sunny outside, and when I get to leave work early. Both of these things individually make me happy, but the weather doesn't determine whether I get to leave work early. (At least not fully anyways. The weather definitely determines how much work I get done, but other external factors control the amount of work I have and the deadlines I need to meet.)
 
-**5M3.** I guess a higher divorce rate could cause a higher marriage rate by making more people available to be married. If divorced people tend to get remarried (potentially to non-divorced people), then the overall marriage rate could go up. Addressing this using a multiple linear regression model would be quite difficult, as you would need more data on remarriage and divorce status. It could be difficult to incorporate remarriages into the regression model, maybe an agent-based model would be more intuitive for this.
+### 5M2
 
-**5M4.** I found [this list](https://worldpopulationreview.com/state-rankings/mormon-population-by-state) of percent LDS population by state. So if we want to add this as a predictor to the divorce rate model, first I'll join these data to the WaffleDivorce data from the `rethinking` package.
+An example of a masked relationship that I like: supposed you have multiple measurements of how far the accelerator is pressed in a car and the car's speed (taken simultaneously) at multiple time points, and you see no correlation. However, you are then given the measurements of the slope of the road at each of those time points, and you see that, when the slope of the road is taken into account, the two variables are correlated. When the car is going uphill, the accelerator is always pressed further and the speed is always lower, but pressing the accelerator still increases the speed.
+
+### 5M3
+
+I guess a higher divorce rate could cause a higher marriage rate by making more people available to be married. If divorced people tend to get remarried (potentially to non-divorced people), then the overall marriage rate could go up. Addressing this using a multiple linear regression model would be quite difficult, as you would need more data on remarriage and divorce status. It could be difficult to incorporate remarriages into the regression model, maybe an agent-based model would be more intuitive for this.
+
+### 5M4
+
+I found [this list](https://worldpopulationreview.com/state-rankings/mormon-population-by-state) of percent LDS population by state. So if we want to add this as a predictor to the divorce rate model, first I'll join these data to the WaffleDivorce data from the `rethinking` package.
 
 ```{r 5m4 data cleaning}
 pct_lds <- readr::read_csv(here::here("static/pct_lds.csv"))
@@ -128,7 +150,9 @@ We can see that for every one percentage increase in the LDS population of a sta
 
 This estimate is probably biased by Utah, which is a strong outlier with 63% LDS population (far more than the second highest state, Idaho, with 24% of the population identifying as LDS).
 
-**5M5.** For this exercise, I'll call the price of gas $G$, obesity $O$, exercise $E$, and eating at restaurants $R$. The dag for this hypothesis looks like this.
+### 5M5
+
+For this exercise, I'll call the price of gas $G$, obesity $O$, exercise $E$, and eating at restaurants $R$. The dag for this hypothesis looks like this.
 
 ```{r}
 dag <- dagitty::dagitty(
@@ -152,7 +176,9 @@ and
 $$\mu_i = \alpha + \beta_R R_i + \beta_G G_i.$$
 Using these two models, we control for the effect of gas price and obtain the direct causal effect of $E$ and $R$, assuming that $E$ and $R$ do not affect each other at all.
 
-**5H1.** Assuming the DAG for the divorce problem is $M \to A \to D$. The DAG only has one conditional independency: $D$ and $M$ are uncorrelated if we condition on $A$. We can check this using dagitty as well.
+### 5H1
+
+Assuming the DAG for the divorce problem is $M \to A \to D$. The DAG only has one conditional independency: $D$ and $M$ are uncorrelated if we condition on $A$. We can check this using dagitty as well.
 
 ```{r}
 dag2 <- dagitty::dagitty("dag {M -> A -> D}")
@@ -219,7 +245,9 @@ coeftab_plot(
 
 We can see that before we add age to the model, the effect of marriage is quit large. But then when we condition on age, the effect is close to zero with a large amount of uncertainty. So it appears that our data are consistent with the conditional independencies of the model. The coefficient for age does not change when we condition it on marriage rate, so this supports our conclusion.
 
-**5H2.** Assuming that this is the true DAG for the divorce example, we want to fit a new model and estimate the counterfactual effect of halving a state's marriage rate $M$.
+### 5H2
+
+Assuming that this is the true DAG for the divorce example, we want to fit a new model and estimate the counterfactual effect of halving a state's marriage rate $M$.
 
 ```{r}
 set.seed(100)
@@ -384,7 +412,9 @@ D_res |>
 
 There we go. The white points here show each of the states if their divorce rate were halved (and the model is true). I didn't label them because I had already spend too much time on this project. There's a lot more I could think of to do on this problem, but instead I decided to move on to the next one instead.
 
-**5H3.** We are given the following DAG for the milk energy problem.
+### 5H3
+
+We are given the following DAG for the milk energy problem.
 
 ```{r}
 dag3 <- dagitty::dagitty("dag {K <- M -> N -> K}")
@@ -425,7 +455,7 @@ m_5h3 <-
 rethinking::precis(m_5h3)
 ```
 
-In this case, the predictor we want the counterfactual effect of ($M$) is on a log scale, so we should be able to get the effect of halving it (since changes will be proportional on a multiplicative scale). But that's kind of annoying, so we'll do the simulating way anyways.
+In this case, the predictor we want the counterfactual effect of ($M$) is on a log scale, so we should be able to get the effect of halving it (since changes will be proportional on a multiplicative scale). But I'm not sure I formally understand what the "total counterfactual effect" is well enough to do that. So I'll simulate instead.
 
 ```{r}
 # Sequence in log units
@@ -461,3 +491,123 @@ shade(plot_PI, plot_data$M)
 mtext("Total counterfactual effect of M on K")
 ```
 
+Again, the question didn't say *what* number to double, but you can get any of them from a simulation like this.
+
+### 5H4
+
+This is an open-ended problem where we will consider how to add the indicator of being in the South to the marriage problem. There are a few possibilities for the causal implications of this.
+
+1. Something about Southerness directly affects age at marriage, marriage rate, and divorce rate all at the same time. (Or divorce rate, and one of the two predictors) That is, Southerness has both direct and indirect effects on divorce rate.
+1. Something about Souttherness directly affects age at marriage and marriage rate, having only indirect effects on divorce rate. Alternatively, Southerness only impacts one of these two variables.
+1. Something about Southernness directly affects divorce rate, with no indirect effects.
+
+My first instinct is to say that age at marriage and marriage rate are primarily influenced by socioeconomic factors. Due to multiple historical factors (including slavery and an enduring legacy of systemic racism), the southern US, on average, has lower education rates and higher poverty rates as a region. Increased socioeconomic status tends to be associated with higher age of marriage, but a higher marriage rate and lower divorce rate (according to what I read while googling this).
+
+However, the southern U.S. also has a unique subculture (which varies widely across regions of the south), which could be a sociological cause of differences in some of these variables. For example, I think it is reasonable to say that traditional Southern culture encourages women to marry young, and also encourages women to get married in general -- there is definitely a stereotype about older, unmarried women in traditional Southern culture.
+
+So, based on both the socioeconomic reasons and the "culture" argument, there are two models I would like to examine. First, the model that posits a direct effect of Southerness on divorce rate, as well as indirect effects on both age at marriage and marriage rate. Then, I'd also like to examine the model where there is no direct effect of Southerness on divorce rate, and Southerness acts on divorce rate via age at marriage and marriage rate.
+
+Let's examine the model with no direct effects first. We'll consider the conditional independencies of this DAG.
+
+```{r}
+dag_indirect <- dagitty::dagitty("dag {M <- S -> A; D <- M -> A; A -> D}")
+plot(dag_indirect)
+dagitty::impliedConditionalIndependencies(dag_indirect)
+```
+
+So, if the data are consistent with this DAG, then the divorce rate should be independent of being in the South after we control for age at marriage and marriage rate. So let's fit a model that does that. Since Southern status is an indicator variable, I wasn't quite sure how to handle it in this model. In a frequentist framework, I would probably want to include an interaction term -- this was briefly mentioned at the beginning of this chapter, but has not been covered in detail so I'll just use a simple additive-effects-only model for now.
+
+But first let's consider the conditional independencies of the DAG with direct effects.
+
+```{r}
+dag_direct <- dagitty::dagitty("dag {M <- S -> A; D <- M -> A; A -> D; S -> D}")
+plot(dag_direct)
+dagitty::impliedConditionalIndependencies(dag_direct)
+```
+
+There are no conditional independencies for this graph! So we should expect to see a relationship for all three parameters in the model that conditions on all three of our predictor variables.
+
+Fortunately for us, we can use the same model to evaluate both of these DAGs -- we just need to see which of the conditional independencies are supported by the result of predicting $D$ using all three of them.
+
+```{r}
+d <-
+	WaffleDivorce |>
+	dplyr::transmute(
+		D = standardize(Divorce),
+		M = standardize(Marriage),
+		A = standardize(MedianAgeMarriage),
+		S = South
+	)
+
+m_s_only <-
+		rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + bS * S,
+			a ~ dnorm(0, 0.2),
+			bS ~ dnorm(0, 0.5),
+			sigma ~ dexp(1)
+		),
+		data = d
+	)
+
+m_m_only <-
+		rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + bM * M,
+			a ~ dnorm(0, 0.2),
+			bM ~ dnorm(0, 0.5),
+			sigma ~ dexp(1)
+		),
+		data = d
+	)
+
+m_a_only <-
+		rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + bA * A,
+			a ~ dnorm(0, 0.2),
+			bA ~ dnorm(0, 0.5),
+			sigma ~ dexp(1)
+		),
+		data = d
+	)
+
+m_all <-
+	rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + bM * M + bA * A + bS * S,
+			a ~ dnorm(0, 0.2),
+			bM ~ dnorm(0, 0.5),
+			bA ~ dnorm(0, 0.5),
+			bS ~ dnorm(0, 0.5),
+			sigma ~ dexp(1)
+		),
+		data = d
+	)
+
+rethinking::precis(m_all)
+coeftab_plot(
+	coeftab(
+		m_a_only, m_s_only, m_m_only, m_all
+	),
+	pars = c("bA", "bS", "bM")
+)
+```
+
+So, interestingly, from the estimated coefficients, we see that the coefficient for being in the South does not change that much when we control for both of the other variables. Of course, the CI crosses zero in the new model, so if we were doing bad statistics we would say that the effect has disappeared, but it was significant in the S-only model, which means that there is no direct effect of S. Since we are not doing bad statistics though, it seems unreasonable to claim that -- there appears to be an effect of both $A$ and $S$ in the final model.
+
+Recall our previous model which was consistent with the idea that marriage rate only impacts divorce rate through the effect of age of marriage. So another potential DAG is like this.
+
+```{r}
+dag_med <- dagitty::dagitty("dag {M <- S -> A -> D; M -> A ->; S -> D}")
+plot(dag_med)
+dagitty::impliedConditionalIndependencies(dag_med)
+```
+
+So the only casual independency of this DAG is whether D is independent of M after controlling for A and S, and after fitting our previous model we see that the data are consistent with this DAG. Arguably the data are not consistent with the other DAGs since those DAGs do not have any conditional independencies involving M, but the best model should still be chosen by a domain expert, not based on what the data are consistent with after observing the data.
+
+<!-- end of file -->
