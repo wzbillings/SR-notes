@@ -1,0 +1,16 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+# The Haunted DAG and the Causal Terror
+
+This chapter discusses three common pitfalls that can lead our statistical models to misbehave and make our causal interpretations difficult or incorrect. The three major topics are collider bias (selection-distortion), multicollinearity in regression models, and post-treatment bias. The chapter further expands on the idea of DAGs as graphical causal models that was introduced in the previous chapter.
+
+## Chapter notes
+
+* The **Selection-distortion effect** (AKA Berkson's bias, generalized to the idea of collider bias) occurs when the selection of a sample changes the relationship between the observed variables. (I.e. there is/isn't a relationship between the two variables on the sample, but in the larger population, there isn't/is a relationship.) Berkson's bias refers to the particular effect that when selecting from a population on two desirable traits, there often appears to be a negative correlation between the desirable traits in the selected sample.
+* **Multicollinearity** refers to a very strong association between two or more predictor variables, conditional on the other variables in the model. When variables are multicollinear, the posterior distribution will seem to suggest that none of the multicollinear variables are truly associated with the outcome, even if the reality is that they are all strongly associated.
+* 
+
+## Exercises
