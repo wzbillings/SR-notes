@@ -501,7 +501,7 @@ new_indiv <-
 preds <- rethinking::link(fit = m_4m7, data = new_indiv)
 
 # Get the means and round it
-new_indiv$means <- apply(preds, 2, function(x) round(mean(x, 2)))
+new_indiv$means <- apply(preds, 2, function(x) round(mean(x), 2))
 
 # Calculate the PI and format it
 PIs <- apply(preds, 2, PI, 0.89)
@@ -512,10 +512,47 @@ names(new_indiv) <- c("Individial", "weight", "expected height", "89% interval")
 knitr::kable(
 	new_indiv,
 	caption = paste0("Expected heights with 89% equal-tailed posterior intervals",
-									 "for the five individuals wiuthout recorded heights in the",
-									 "!Kung census data.")
+									 " for the five individuals wiuthout recorded heights in the",
+									 " !Kung census data, using link.")
 )
 ```
+
+After talking to my colleague [Juliana](https://jtaube.github.io/), I also decided
+to rerun this using `sim()` -- with predicted heights that include variance from
+the mean. I think this is probably "more correct" so credit to Juliana for
+pointing that out to me.
+
+```{r}
+new_indiv <-
+	tibble::tribble(
+		~individual, ~weight,
+		1, 46.95,
+		2, 43.72,
+		3, 64.78,
+		4, 32.59,
+		5, 54.63
+	)
+# Get the samples from the posterior at the given weights
+preds <- rethinking::sim(fit = m_4m7, data = new_indiv)
+
+# Get the means and round it
+new_indiv$means <- apply(preds, 2, function(x) round(mean(x), 2))
+
+# Calculate the PI and format it
+PIs <- apply(preds, 2, PI, 0.89)
+new_indiv$PIs <- apply(PIs, 2, function(x) paste0(round(x, 2), collapse = ", "))
+
+# Format names and create the table
+names(new_indiv) <- c("Individial", "weight", "expected height", "89% interval")
+knitr::kable(
+	new_indiv,
+	caption = paste0("Expected heights with 89% equal-tailed posterior intervals",
+									 " for the five individuals wiuthout recorded heights in the",
+									 " !Kung census data, using sim.")
+)
+```
+
+So we can see that the results are not that different, but the 89% intervals are a bit wider, which is good. The new intervals incorporate an additional component of the variance that my previous estimates did not, so if I were publishing this model, I would definitely publish the `sim` intervals instead. I guess these are analogous to frequentist prediction intervals as opposed to confidence intervals.
 
 ### 4H2
 Select out all the rows in the `Howell1` data with ages below 18 years of age. Fit a linear regression to these data using `quap`. Present and interpret the estimates. For every 10 units of increase in weight, how much taller does the model predict a child gets?
