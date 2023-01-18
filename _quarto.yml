@@ -2,6 +2,9 @@ project:
   type: book
   output-dir: docs
 
+execute: 
+  freeze: auto
+
 book:
   title: "Statistical Rethinking notes and exercises"
   author: "Zane Billings"
@@ -9,7 +12,13 @@ book:
   output-file: "Zane-SR-Notes"
   repo-url: https://github.com/wzbillings/SR-notes/
   repo-actions: [issue, source]
-  sharing: [twitter]
+  sidebar:
+    search: true
+    tools:
+      - icon: house-door-fill
+        href: https://wzbillings.com
+      - icon: mastodon
+        href: https://fediscience.org/@wzbillings
   search: true
   chapters:
     - index.qmd

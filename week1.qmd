@@ -1,7 +1,10 @@
 # Week 1 Homework
 
 This homework covers the material from Lectures 1 and 2, and the content from
-book Chapters 1, 2, and 3.
+book Chapters 1, 2, and 3. The questions are reproduced almost identically from
+[Richard McElreath's original assignment](https://github.com/rmcelreath/stat_rethinking_2023/blob/main/homework/week01.pdfhttps://github.com/rmcelreath/stat_rethinking_2023/blob/main/homework/week02.pdf), I did not write them. I only wrote these solutions. As of 2023-01-17, I
+believe my solutions are consistent with the now-released official solutions
+by McElreath and I do not intend to edit these further.
 
 ::: {.callout-note appearance="simple" icon=false}
 

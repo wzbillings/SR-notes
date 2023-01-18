@@ -151,8 +151,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Statistical Rethinking notes and exercises</a> 
         <div class="sidebar-tools-main tools-wide">
+    <a href="https://wzbillings.com" title="" class="sidebar-tool px-1"><i class="bi bi-house-door-fill"></i></a>
+    <a href="https://fediscience.org/@wzbillings" title="" class="sidebar-tool px-1"><i class="bi bi-mastodon"></i></a>
     <a href="https://github.com/wzbillings/SR-notes/" title="Source Code" class="sidebar-tool px-1"><i class="bi bi-github"></i></a>
-    <a href="https://twitter.com/intent/tweet?url=|url|" title="Twitter" class="sidebar-tool px-1"><i class="bi bi-twitter"></i></a>
   <a href="" class="quarto-color-scheme-toggle sidebar-tool" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
     </div>
@@ -256,7 +257,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
-<p>This homework covers the material from Lectures 1 and 2, and the content from book Chapters 1, 2, and 3.</p>
+<p>This homework covers the material from Lectures 1 and 2, and the content from book Chapters 1, 2, and 3. The questions are reproduced almost identically from <a href="https://github.com/rmcelreath/stat_rethinking_2023/blob/main/homework/week01.pdfhttps://github.com/rmcelreath/stat_rethinking_2023/blob/main/homework/week02.pdf">Richard McElreath’s original assignment</a>, I did not write them. I only wrote these solutions. As of 2023-01-17, I believe my solutions are consistent with the now-released official solutions by McElreath and I do not intend to edit these further.</p>
 <div class="callout-note callout callout-style-simple no-icon">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
@@ -341,7 +342,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(post_pred <span class="sc">&gt;=</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.1785</code></pre>
+<pre><code>[1] 0.1805</code></pre>
 </div>
 </div>
 <p>The probability of three or more water samples in the next 5 tosses is approximately <span class="math inline">\(18.28\%\)</span>, based on our posterior predictive distribution.</p>
