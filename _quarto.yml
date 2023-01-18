@@ -13,11 +13,17 @@ book:
   search: true
   chapters:
     - index.qmd
-    - cp1.qmd
-    - cp2.qmd
-    - cp3.qmd
-    - cp4.qmd
-    - cp5.qmd
+    - part: "Textbook"
+      chapters:
+        - cp1.qmd
+        - cp2.qmd
+        - cp3.qmd
+        - cp4.qmd
+        - cp5.qmd
+    - part: "2023 Homework"
+      chapters:
+        - week1.qmd
+        - week2.qmd
     - references.qmd
 
 bibliography: references.bib
