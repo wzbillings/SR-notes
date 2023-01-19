@@ -321,31 +321,31 @@ one or more posterior contrasts as a summary.
 :::
 
 So what we are assuming here is that the effect of age is different for
-males and females -- I am not sure whether there is a difference in
-weight at birth for males and females, so I will say for simplicity that
-there is not. We'll use a similar model from before, but this time the
-effect of age will be dependent on sex.
-
+males and females -- we'll also allow the intercept to vary by sex, meaning that
+males and females can also have a different weight at birth on average.
+We'll use a similar model from before other than these changes. I had some issues
+with convergence of the quap algorithm so I made the priors a bit less diffuse,
+which McElreath would argue is probably better anyways.
 \begin{align*}
 \text{weight}_i &\sim \text{Normal}(\mu, \sigma) \\
-\mu &= \alpha_{i} + \beta \cdot \text{age}_{\text{Sex}_i} \\
-\alpha &\sim \text{Exponential}(0.2) \\
-\beta_{j} &\sim \text{Exponential}(0.2) \\
-\sigma &\sim \text{Exponential}(0.2)
+\mu &= \alpha_{\text{Sex_i}} + \beta \cdot \text{age}_{\text{Sex}_i} \\
+\alpha_{j} &\sim \text{Exponential}(1) \\
+\beta_{j} &\sim \text{Exponential}(1) \\
+\sigma &\sim \text{Exponential}(1)
 \end{align*}
 
 So now we will fit the model.
 
 ```{r}
-set.seed(100)
+set.seed(103)
 fit2 <-
 	rethinking::quap(
 		flist = alist(
 			weight ~ dnorm(mu, sigma),
-			mu <- a + b[sex] * age,
-			a ~ dexp(0.2),
-			b[sex] ~ dexp(0.2),
-			sigma ~ dexp(0.2)
+			mu <- a[sex] + b[sex] * age,
+			a[sex] ~ dexp(1),
+			b[sex] ~ dexp(1),
+			sigma ~ dexp(1)
 		),
 		data = list(
 			weight = h1$weight,
@@ -353,7 +353,7 @@ fit2 <-
 			# We have to add 1 for the index coding to work right
 			sex = h1$male + 1
 		),
-		start = list(a = 0.5, b = c(1, 1), sigma = 0.5)
+		start = list(a = c(1, 1), b = c(1, 1), sigma = 0.5)
 	)
 
 rethinking::precis(fit2, depth = 2)
@@ -362,71 +362,76 @@ rethinking::precis(fit2, depth = 2)
 Ok, so I had some issues with the start values here. Probably because
 the priors are very diffuse, quap sometimes cannot get to the MAP from
 randomly sampled starting locations. However, I just had to find a seed that
-works, because it seems to be ignoring the start value for b (or I am
-specifying it incorrectly) in the error messages I get. But this one fit,
-so let's go. There appears to be a slight difference between the two
-slope parameters, but we cannot allow ourselves to be mislead by the table of coefficients. We must compute the contrast distribution to truly understand
-what is happening here.
+works, because it seems to be ignoring the start value for the vector-valued
+parameters (or I am specifying it incorrectly) in the error messages I get.
+But this one fit, so let's go. There appears to be a slight difference between
+the two slope parameters, but we cannot allow ourselves to be mislead by the
+table of coefficients. We must compute the contrast distribution to truly
+understand what is happening here.
+
+Now, in order to understand the differences, we have to construct the contrast
+distribution.
 
 ```{r}
-post <- extract.samples(fit2, n = 1000)
-post$contrast <- post$b[, 2] - post$b[, 1]
+N <- 2500
+
+age_vals <- 0:12
+mean_f <- rethinking::link(fit2, data = list("age" = age_vals, "sex" = 1),
+													 n = N)
+mean_m <- rethinking::link(fit2, data = list("age" = age_vals, "sex" = 2),
+													 n = N)
+
+mean_contrast <- mean_m - mean_f
 
 layout(matrix(c(1, 2), nrow = 1))
-
-# Plot of posterior means
 plot(
 	NULL,
-	xlim = c(-0.1, 2), ylim = c(0, 10),
-	xlab = "Posterior mean effect of age on weight (kg/year)",
-	ylab = "Density",
-	xaxs = "i", yaxs = "i"
+	xlim = c(0, 12), ylim = c(0, 30),
+	xlab = "Simulated age",
+	ylab = "Weight (kg)"
 )
 
-rethinking::dens(post$b[, 2], col = "dodgerblue2", lwd = 2, add = TRUE)
-rethinking::dens(post$b[, 1], col = "hotpink1", lwd = 2, add = TRUE)
-rethinking::dens(post$contrast, col = "black", lwd = 2, add = TRUE)
-legend(
-	x = "topleft",
-	legend = c("Males", "Females", "Contrast"),
-	col = c("dodgerblue2", "hotpink1", "black"),
-	lwd = c(2, 2, 2)
-)
+for (i in 1:N) {
+	lines(
+		age_vals, mean_m[i, ],
+		lwd = 1, col = rethinking::col.alpha("dodgerblue2", 0.03)
+	)
+	lines(
+		age_vals, mean_f[i, ],
+		lwd = 1, col = rethinking::col.alpha("hotpink1", 0.03)
+	)
+}
 
-# Plot of regression lines from posterior
+legend("topleft", c("Males", "Females"), col = c("dodgerblue2", "hotpink1"),
+			 lty = c(1, 1))
+
 plot(
 	NULL,
-	xlim = c(0, 13),
-	ylim = c(0, 30),
-	xlab = "Age",
-	ylab = "Predicted weight (kg)"
+	xlim = c(0, 12), ylim = c(-3, 5),
+	xlab = "Simulated age",
+	ylab = "Weight contrast (M - F)"
 )
 
-for (i in 1:length(post$a)) {
-	curve(
-		post$a[i] + post$b[i, 1] * x,
-		from = 0, to = 13, add = TRUE,
-		col = rethinking::col.alpha("hotpink1", 0.01)
+for (i in 1:N) {
+	lines(
+		age_vals, mean_contrast[i, ],
+		lwd = 1, col = rethinking::col.alpha("black", 0.05)
 	)
 }
 
-for (i in 1:length(post$a)) {
-	curve(
-		post$a[i] + post$b[i, 2] * x,
-		from = 0, to = 13, add = TRUE,
-		col = rethinking::col.alpha("dodgerblue2", 0.01)
-	)
-}
+lines(age_vals, apply(mean_contrast, 2, mean), lwd = 3, lty = 2, col = "red")
+```
 
-for (i in 1:length(post$a)) {
-	curve(
-		post$a[i] + (post$b[i, 2] - post$b[i, 1]) * x,
-		from = 0, to = 13, add = TRUE,
-		col = rethinking::col.alpha("black", 0.01)
-	)
-}
+This contrast is between the estimates of the conditional mean response. To
+incorporate individual variance into the uncertainty around the estimate,
+we can also use samples from the posterior of the conditional mean, along with
+samples from the posterior of the scale parameter to simulate individual
+responses.
+
+```{r}
 
 ```
+
 
 
 
