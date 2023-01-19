@@ -126,6 +126,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 </head>
 
@@ -325,7 +326,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><img src="week2_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>I just randomly picked these numbers and fiddled with it a bit until the two plots looked similar, and I think I was able to get them pretty close for such a simple simulation. Now I just need to rewatch the lectures and make sure this kind of simulation is the same as what McElreath is talking about – I think it is, and I like this simulation, but I want to make sure I am learning what I am supposed to be learning.</p>
+<p>I just randomly picked these numbers and fiddled with it a bit until the two plots looked similar, and I think I was able to get them pretty close for such a simple simulation using linear effects and normal errors.</p>
 <div class="callout-note callout callout-style-simple no-icon">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
@@ -336,6 +337,188 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 </div>
 </div>
+<p>Based on the DAG, to obtain the <strong>total</strong> causal effect of a year of growth (the interpretation of the parameter associated with the independent variable <em>age</em>) we want to use age as the only independent variable in the model. If we controlled for height, the parameter would estimate the <strong>direct</strong> causal effect of age, but we want the <strong>total</strong> effect. So the basic structure of our model will look like this. <span class="math display">\[\begin{align*}
+\text{weight}_i &amp;\sim \text{Normal}(\mu, \sigma) \\
+\mu &amp;= \alpha + \beta \cdot \text{age}_i \\
+\alpha &amp;\sim \text{Prior}() \\
+\beta &amp;\sim \text{Prior}() \\
+\sigma &amp;\sim \text{Prior}()
+\end{align*}\]</span></p>
+<p>We will need to assign some priors to our data. In general, I tend to prefer weakly informative priors, whereas I think McElreath tends to prefer less broad priors. I’ll base my priors off the default recommended priors from the <a href="https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations">Stan devs’ prior choice recommendations</a>. Of course they also recommend rescaling all variables before modeling, which I think is a good idea, but I won’t do it here because I’m lazy and I don’t think it’s going to be particularly useful here.</p>
+<p>One additional constraint that we have is that the <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> parameters should both be <strong>positive</strong>! It doesn’t make sense for someone to shrink as they get older (at least not for ages 0 to 13, maybe for seniors but not here). And it certainly doesn’t make sense for someone to ever have a negative weight, even at age zero. So we’ll use a distribution that has to be positive. I’ll choose a half-normal distribution, which is easy to sample by just taking the absolute value of a random normal sample.</p>
+<p><span class="math display">\[\begin{align*}
+\text{weight}_i &amp;\sim \text{Normal}(\mu, \sigma) \\
+\mu &amp;= \alpha + \beta \cdot \text{age}_i \\
+\alpha &amp;\sim \text{Half-Normal}(0, 5) \\
+\beta &amp;\sim \text{Half-Normal}(0, 5) \\
+\sigma &amp;\sim \text{Exponential}(0.2)
+\end{align*}\]</span></p>
+<p>These priors are quite weak, perhaps we should do a prior predictive check to visualize them before doing anything else.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">101</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>pps <span class="ot">&lt;-</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">a =</span> <span class="fu">abs</span>(<span class="fu">rnorm</span>(<span class="dv">1000</span>, <span class="dv">0</span>, <span class="dv">5</span>)),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">b =</span> <span class="fu">abs</span>(<span class="fu">rnorm</span>(<span class="dv">1000</span>, <span class="dv">0</span>, <span class="dv">5</span>)),</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">s =</span> <span class="fu">rexp</span>(<span class="dv">1000</span>, <span class="fl">0.2</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="cn">NULL</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">13</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">10</span>, <span class="dv">150</span>),</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Age"</span>, <span class="at">ylab =</span> <span class="st">"Simulated mu"</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">"Prior predictive simulation of E[weight | age]"</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(pps)) {</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">curve</span>(</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        pps<span class="sc">$</span>a[i] <span class="sc">+</span> pps<span class="sc">$</span>b[i] <span class="sc">*</span> x,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">13</span>, <span class="at">n =</span> <span class="dv">1000</span>,</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> rethinking<span class="sc">::</span><span class="fu">col.alpha</span>(<span class="st">"black"</span>, <span class="fl">0.1</span>)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="week2_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Well, some of those are way too flat, and some of them are way too steep, but overall I think this encompasses a good range of possibilities. Let’s also look at the prior predictive distribution of the actual outcomes. Here, I’ll take random samples of age from a discrete uniform distribution. That’s probably not the best way to do it but it seems easiest.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Do the simulation</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">102</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>sim_age <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">13</span>, <span class="dv">1000</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>sim_y <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1000</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean =</span> pps<span class="sc">$</span>a <span class="sc">+</span> pps<span class="sc">$</span>b <span class="sc">*</span> sim_age,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd =</span> pps<span class="sc">$</span>s</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">nrow =</span> <span class="dv">1</span>))</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Histogram of all y values</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    sim_y,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Simulated outcome"</span>,</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">"Distribution of simulated weights"</span>,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="st">"FD"</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot showing y vs x with simulated regression lines as well</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="cn">NULL</span>,</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">13</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">10</span>, <span class="dv">150</span>),</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Age"</span>, <span class="at">ylab =</span> <span class="st">"Simulated weight"</span>,</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">"Simulated weights vs simulated ages"</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(pps)) {</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">curve</span>(</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        pps<span class="sc">$</span>a[i] <span class="sc">+</span> pps<span class="sc">$</span>b[i] <span class="sc">*</span> x,</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">13</span>, <span class="at">n =</span> <span class="dv">1000</span>,</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>        <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> rethinking<span class="sc">::</span><span class="fu">col.alpha</span>(<span class="st">"black"</span>, <span class="fl">0.05</span>)</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(sim_age, sim_y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="week2_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Well, we ended up with a few negative and a few riduculously large heights, but since we’re just doing a linear regression here I think we can live with that and let the data inform the golem that no one has negative heights. Probably we would want to either change the likelihood function or transform something (e.g.&nbsp;use a log link) to prevent any negative responses, but this will probably wash out in the fitting. So let’s do that.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>            weight <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>            mu <span class="ot">&lt;-</span> a <span class="sc">+</span> b <span class="sc">*</span> age,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>            a <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">5</span>),</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>            b <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">5</span>),</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="fl">0.2</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">constraints =</span> <span class="fu">alist</span>(</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">a =</span> <span class="st">"lower=0"</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">b =</span> <span class="st">"lower=0"</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> <span class="fu">list</span>(</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">weight =</span> h1<span class="sc">$</span>weight,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">age =</span> h1<span class="sc">$</span>age</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Hmm. Looks like <code>quap</code> does not take a constraints argument the way I thought it did. So I guess we will just have to settle for exponential priors, which like I mentioned, is probably the easiest way (not the best way) to get a strictly positive prior. Let’s redo the prior predictive simulation using this model. <span class="math display">\[\begin{align*}
+\text{weight}_i &amp;\sim \text{Normal}(\mu, \sigma) \\
+\mu &amp;= \alpha + \beta \cdot \text{age}_i \\
+\alpha &amp;\sim \text{Exponential}(0.2) \\
+\beta &amp;\sim \text{Exponential}(0.2) \\
+\sigma &amp;\sim \text{Exponential}(0.2)
+\end{align*}\]</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">101</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>pps <span class="ot">&lt;-</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">a =</span> <span class="fu">rexp</span>(<span class="dv">1000</span>, <span class="fl">0.2</span>),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">b =</span> <span class="fu">rexp</span>(<span class="dv">1000</span>, <span class="fl">0.2</span>),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">s =</span> <span class="fu">rexp</span>(<span class="dv">1000</span>, <span class="fl">0.2</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">102</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>sim_age <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">13</span>, <span class="dv">1000</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>sim_y <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1000</span>,</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean =</span> pps<span class="sc">$</span>a <span class="sc">+</span> pps<span class="sc">$</span>b <span class="sc">*</span> sim_age,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd =</span> pps<span class="sc">$</span>s</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Histogram of all y values</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    sim_y,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Simulated outcome"</span>,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">"Distribution of simulated weights"</span>,</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="st">"FD"</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="week2_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot showing y vs x with simulated regression lines as well</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="cn">NULL</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">13</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">10</span>, <span class="dv">150</span>),</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Age"</span>, <span class="at">ylab =</span> <span class="st">"Simulated weight"</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">"Simulated weights vs simulated ages"</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(pps)) {</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">curve</span>(</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        pps<span class="sc">$</span>a[i] <span class="sc">+</span> pps<span class="sc">$</span>b[i] <span class="sc">*</span> x,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">13</span>, <span class="at">n =</span> <span class="dv">1000</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> rethinking<span class="sc">::</span><span class="fu">col.alpha</span>(<span class="st">"black"</span>, <span class="fl">0.05</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(sim_age, sim_y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="week2_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Yes, this definitely results in a more left-skewed distribution, but I think it will work out fine in the model (like before). So I’m not too pressed about it. Now let’s finally fit the model, for real.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>            weight <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            mu <span class="ot">&lt;-</span> a <span class="sc">+</span> b <span class="sc">*</span> age,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>            a <span class="sc">~</span> <span class="fu">dexp</span>(<span class="fl">0.2</span>),</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>            b <span class="sc">~</span> <span class="fu">dexp</span>(<span class="fl">0.2</span>),</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>            sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="fl">0.2</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> <span class="fu">list</span>(</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">weight =</span> h1<span class="sc">$</span>weight,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">age =</span> h1<span class="sc">$</span>age</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>          mean         sd     5.5%    94.5%
+a     7.423126 0.36170953 6.845044 8.001208
+b     1.344382 0.05471435 1.256938 1.431826
+sigma 2.519828 0.14708546 2.284757 2.754899</code></pre>
+</div>
+</div>
+<p>So our estimate for the total causal effect of age on weight is 1.34. In other words, we would expect that the average individual is born at weight 7.42 units, and increases in weight by 1.34 units each year.</p>
 <div class="callout-note callout callout-style-simple no-icon">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
@@ -344,6 +527,106 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="callout-body-container">
 <p><strong>3.</strong> Now suppose the causal association between age and weight might be different for boys and girls. Use a single linear regression, with a categorical variable for sex, to estimate the total causal effect of age on weight separately for boys and girls. How do girls and boys differ? Provide one or more posterior contrasts as a summary.</p>
 </div>
+</div>
+</div>
+<p>So what we are assuming here is that the effect of age is different for males and females – I am not sure whether there is a difference in weight at birth for males and females, so I will say for simplicity that there is not. We’ll use a similar model from before, but this time the effect of age will be dependent on sex.</p>
+<p><span class="math display">\[\begin{align*}
+\text{weight}_i &amp;\sim \text{Normal}(\mu, \sigma) \\
+\mu &amp;= \alpha_{i} + \beta \cdot \text{age}_{\text{Sex}_i} \\
+\alpha &amp;\sim \text{Exponential}(0.2) \\
+\beta_{j} &amp;\sim \text{Exponential}(0.2) \\
+\sigma &amp;\sim \text{Exponential}(0.2)
+\end{align*}\]</span></p>
+<p>So now we will fit the model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">100</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>            weight <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>            mu <span class="ot">&lt;-</span> a <span class="sc">+</span> b[sex] <span class="sc">*</span> age,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>            a <span class="sc">~</span> <span class="fu">dexp</span>(<span class="fl">0.2</span>),</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>            b[sex] <span class="sc">~</span> <span class="fu">dexp</span>(<span class="fl">0.2</span>),</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>            sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="fl">0.2</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> <span class="fu">list</span>(</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">weight =</span> h1<span class="sc">$</span>weight,</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>            <span class="at">age =</span> h1<span class="sc">$</span>age,</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>            <span class="co"># We have to add 1 for the index coding to work right</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">sex =</span> h1<span class="sc">$</span>male <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">start =</span> <span class="fu">list</span>(<span class="at">a =</span> <span class="fl">0.5</span>, <span class="at">b =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>), <span class="at">sigma =</span> <span class="fl">0.5</span>)</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(fit2, <span class="at">depth =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>          mean         sd     5.5%    94.5%
+a     7.430799 0.34899528 6.873037 7.988561
+b[1]  1.243728 0.06086206 1.146459 1.340998
+b[2]  1.444553 0.06101328 1.347042 1.542064
+sigma 2.431267 0.14192809 2.204438 2.658095</code></pre>
+</div>
+</div>
+<p>Ok, so I had some issues with the start values here. Probably because the priors are very diffuse, quap sometimes cannot get to the MAP from randomly sampled starting locations. However, I just had to find a seed that works, because it seems to be ignoring the start value for b (or I am specifying it incorrectly) in the error messages I get. But this one fit, so let’s go. There appears to be a slight difference between the two slope parameters, but we cannot allow ourselves to be mislead by the table of coefficients. We must compute the contrast distribution to truly understand what is happening here.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>post <span class="ot">&lt;-</span> <span class="fu">extract.samples</span>(fit2, <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>post<span class="sc">$</span>contrast <span class="ot">&lt;-</span> post<span class="sc">$</span>b[, <span class="dv">2</span>] <span class="sc">-</span> post<span class="sc">$</span>b[, <span class="dv">1</span>]</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">nrow =</span> <span class="dv">1</span>))</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot of posterior means</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="cn">NULL</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.1</span>, <span class="dv">2</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">10</span>),</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Posterior mean effect of age on weight (kg/year)"</span>,</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">"Density"</span>,</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">xaxs =</span> <span class="st">"i"</span>, <span class="at">yaxs =</span> <span class="st">"i"</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">dens</span>(post<span class="sc">$</span>b[, <span class="dv">2</span>], <span class="at">col =</span> <span class="st">"dodgerblue2"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">dens</span>(post<span class="sc">$</span>b[, <span class="dv">1</span>], <span class="at">col =</span> <span class="st">"hotpink1"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">dens</span>(post<span class="sc">$</span>contrast, <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"topleft"</span>,</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Males"</span>, <span class="st">"Females"</span>, <span class="st">"Contrast"</span>),</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"dodgerblue2"</span>, <span class="st">"hotpink1"</span>, <span class="st">"black"</span>),</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">lwd =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot of regression lines from posterior</span></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>    <span class="cn">NULL</span>,</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">13</span>),</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">30</span>),</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Age"</span>,</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">"Predicted weight (kg)"</span></span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(post<span class="sc">$</span>a)) {</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">curve</span>(</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>        post<span class="sc">$</span>a[i] <span class="sc">+</span> post<span class="sc">$</span>b[i, <span class="dv">1</span>] <span class="sc">*</span> x,</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">13</span>, <span class="at">add =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> rethinking<span class="sc">::</span><span class="fu">col.alpha</span>(<span class="st">"hotpink1"</span>, <span class="fl">0.01</span>)</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(post<span class="sc">$</span>a)) {</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">curve</span>(</span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>        post<span class="sc">$</span>a[i] <span class="sc">+</span> post<span class="sc">$</span>b[i, <span class="dv">2</span>] <span class="sc">*</span> x,</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>        <span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">13</span>, <span class="at">add =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> rethinking<span class="sc">::</span><span class="fu">col.alpha</span>(<span class="st">"dodgerblue2"</span>, <span class="fl">0.01</span>)</span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(post<span class="sc">$</span>a)) {</span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>    <span class="fu">curve</span>(</span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>        post<span class="sc">$</span>a[i] <span class="sc">+</span> (post<span class="sc">$</span>b[i, <span class="dv">2</span>] <span class="sc">-</span> post<span class="sc">$</span>b[i, <span class="dv">1</span>]) <span class="sc">*</span> x,</span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>        <span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">13</span>, <span class="at">add =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> rethinking<span class="sc">::</span><span class="fu">col.alpha</span>(<span class="st">"black"</span>, <span class="fl">0.01</span>)</span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="week2_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="callout-note callout callout-style-simple no-icon">
