@@ -394,11 +394,11 @@ plot(
 for (i in 1:N) {
 	lines(
 		age_vals, mean_m[i, ],
-		lwd = 1, col = rethinking::col.alpha("dodgerblue2", 0.03)
+		lwd = 1, col = rethinking::col.alpha("dodgerblue2", 0.01)
 	)
 	lines(
 		age_vals, mean_f[i, ],
-		lwd = 1, col = rethinking::col.alpha("hotpink1", 0.03)
+		lwd = 1, col = rethinking::col.alpha("hotpink1", 0.01)
 	)
 }
 
@@ -420,7 +420,35 @@ for (i in 1:N) {
 }
 
 lines(age_vals, apply(mean_contrast, 2, mean), lwd = 3, lty = 2, col = "red")
+abline(h = 0, lwd = 3, lty = 3, col = "blue")
 ```
+
+Here, we can observe that the regression lines for males tend to be steeper
+than the regression lines for females. From the contrast, we can see that
+most of the time, the effect is positive and the line lies above zero.
+Let's compute a posterior interval for the mean.
+
+```{r}
+layout(1)
+plot(
+	NULL,
+	xlim = c(0, 12),
+	ylim = c(-3, 5),
+	xlab = "Simulated age",
+	ylab = "Weight contrast (M - F)"
+)
+
+for (p in c(seq(0.5, 0.9, 0.1), 0.95, 0.99)) {
+	shade(apply(mean_contrast, 2, rethinking::PI, prob = p), age_vals)
+}
+
+lines(age_vals, apply(mean_contrast, 2, mean), lwd = 3, lty = 2)
+abline(h = 0, lwd = 3, lty = 3, col = "blue")
+```
+
+From the contrast, we can see that men tend to be heavier at nearly all ages.
+The weight of males and females tends to be closer at birth than on average
+at older ages.
 
 This contrast is between the estimates of the conditional mean response. To
 incorporate individual variance into the uncertainty around the estimate,
@@ -429,10 +457,58 @@ samples from the posterior of the scale parameter to simulate individual
 responses.
 
 ```{r}
+N <- 2500
+
+age_vals <- 0:12
+mean_f <- rethinking::sim(fit2, data = list("age" = age_vals, "sex" = 1),
+													 n = N)
+mean_m <- rethinking::sim(fit2, data = list("age" = age_vals, "sex" = 2),
+													 n = N)
+
+mean_contrast <- mean_m - mean_f
+
+layout(matrix(c(1, 2), nrow = 1))
+plot(
+	NULL,
+	xlim = c(0, 12), ylim = c(-12, 12),
+	xlab = "Simulated age",
+	ylab = "Weight contrast (M - F)"
+)
+
+for (i in 1:N) {
+	lines(
+		age_vals, mean_contrast[i, ],
+		lwd = 1, col = rethinking::col.alpha("black", 0.05)
+	)
+}
+
+lines(age_vals, apply(mean_contrast, 2, mean), lwd = 3, lty = 2, col = "red")
+abline(h = 0, lwd = 3, lty = 3, col = "blue")
+
+plot(
+	NULL,
+	xlim = c(0, 12),
+	ylim = c(-12, 12),
+	xlab = "Simulated age",
+	ylab = "Weight contrast (M - F)"
+)
+
+for (p in c(seq(0.5, 0.9, 0.1), 0.95, 0.99)) {
+	shade(apply(mean_contrast, 2, rethinking::PI, prob = p), age_vals)
+}
+
+lines(age_vals, apply(mean_contrast, 2, mean), lwd = 3, lty = 2)
+abline(h = 0, lwd = 3, lty = 3, col = "blue")
 
 ```
 
-
+Interestingly, the variance tends to be quite large. However, as we see from
+the plot on the left, we could probably use a better variance structure for
+this model. If each line represents an individual, the spikes over time are
+unlikely to be this drastic, especially for children. We still see (from the
+right plot) that a given male is more likely to be heavier than a given female
+of the same age, but there is a lot of variation between individuals so this
+will not always be true.
 
 
 ::: {.callout-note appearance="simple" icon=false}
@@ -449,5 +525,270 @@ to year. Finally computer the posterior distribution of the total growth over
 all 9 occasions.
 
 :::
+
+```{r}
+data(Oxboys)
+dplyr::glimpse(Oxboys)
+```
+
+From the data documentation, we see that `age` and `Occasion` basically
+represent the same thing, so I'll ignore `age` for now. I think for this
+model, we don't even need to draw a DAG as there are only two variables we
+really care about. 
+
+The first thing I'll do is the necessary data processing. We want to get the
+increments in growth by subtracting the previous measurement from each height
+value. This will give us the amount of growth in between each measurement.
+Note that this will reduce us from 9 total measurements per boy to 8 total
+differences per boy, because there is nothing to subtract from the first
+measurement.
+
+```{r}
+o2 <- Oxboys |>
+	dplyr::group_by(Subject) |>
+	dplyr::mutate(prev = dplyr::lag(height)) |>
+	dplyr::mutate(
+		increment = height - prev,
+		period = Occasion - 1
+	) |>
+	dplyr::filter(
+		Occasion != 1
+	)
+
+o2_l <- list(
+	increment = o2$increment,
+	period = o2$period
+)
+```
+
+So let's plot the distribution of each increment.
+
+```{r}
+set.seed(100)
+layout(cbind(
+	matrix(c(1:8), nrow = 2, ncol = 4, byrow = TRUE),
+	matrix(rep(9, 8), nrow = 2, ncol = 4)
+))
+
+# Histograms of each increment
+for (i in 1:8) {
+	dat <- subset(o2, period == i)
+	hist(
+		dat$increment,
+		breaks = seq(0, 5, 0.5),
+		xlab = NULL,
+		main = paste("Increment", i),
+		cex.lab = 1.25,
+		cex.axis = 1.25
+	)
+}
+
+# Boxplot for each increment
+boxplot(
+	increment ~ period,
+	data = o2_l,
+	cex.lab = 1.75,
+	cex.axis = 1.75,
+	xlab = "Period", ylab = "Increment"
+)
+stripchart(
+	increment ~ period,
+	data = o2_l,
+	method = "jitter",
+	vertical = TRUE,
+	add = TRUE,
+	pch = 21,
+	col = rethinking::col.alpha("red", 0.5),
+	cex = 1.25
+)
+```
+
+There is definitely some variance in each increment, so I think it makes sense
+to use a model that looks like this
+\begin{align*}
+\text{Increment}_i &\sim \text{Normal}(\mu, \sigma) \\
+\mu &= \alpha_{\text{Period}_i} \\
+\alpha &\sim \text{Lognormal}(0, k) \\
+\sigma &\sim \text{Exponential}(1)
+\end{align*}
+
+instead of a model that looks like this
+
+\begin{align*}
+\text{Increment}_i &\sim \text{Normal}(\mu, \sigma) \\
+\mu &= \alpha + \beta_i \cdot \text{Period}_i \\
+\alpha &\sim \text{Prior}() \\
+\beta &\sim \text{Lognormal}(0, k) \\
+\sigma &\sim \text{Exponential}(1)
+\end{align*}
+
+here increment is the difference, and period is the same as occasion
+minus 1. So the increment over the first period is the difference between
+the second height measurement and the first height measurement. (I also
+think that this is what the problem is asking for.)
+
+If we use period as an index variable, we could also include an "overall"
+intercept, but we don't really need to (the models are computationally
+equivalent parametrizations). Sometimes adding the overall intercept makes
+the model run better, or so I've heard, but I'll ignore it for now.
+
+I choose a standard exponential prior on sigma, but for each alpha I choose
+a lognormal prior. This also constrains the effect of each increment to
+be strictly positive, but prefers a moderate effect rather than having
+most of the weight near zero. In order to choose the variance constant $k$
+that I wrote in above as a placeholder, I think it might be best to do a 
+small prior predictive simulation. I'll just simulate one increment, since the
+model will allow them to be different regardless.
+
+I probably should have done this before looking at the data, but I think for
+now it will be OK. We want to choose a diffuse prior, but not one that
+produces insane results.
+
+```{r}
+set.seed(2323)
+k <- c(0.1, 0.25, 0.5, 1, 1.25, 1.5) # Values to try
+N <- 1000 # Number of simulations
+
+# Create a container for the output
+pps <- matrix(nrow = N, ncol = length(k))
+
+# Do the simulation
+for (i in 1:length(k)) {
+	pps[, i] <- rlnorm(N, 0, k[i])
+}
+
+# Make a plot
+layout(matrix(1:length(k), nrow = 2, byrow = TRUE))
+for (i in 1:length(k)) {
+	hist(pps[, i], breaks = "FD", main = paste("k =", k[i]), xlab = NULL)
+} 
+```
+
+Wow, I forgot how hard it is to choose parameters for a lognormal prior. That
+scaling parameter really starts to act up quickly. So for this problem,
+I'll choose $k=1$ since it creates a prior that, in general, constrains our
+values to what seems "reasonable" but also allows the parameter to get
+large if it needs to, due to the tail of the distribution.
+
+So to recap before we fit, our final model will be this.
+\begin{align*}
+\text{Increment}_i &\sim \text{Normal}(\mu, \sigma) \\
+\mu &= \alpha_{\text{Period}_i} \\
+\alpha &\sim \text{Lognormal}(0, 1) \\
+\sigma &\sim \text{Exponential}(1)
+\end{align*}
+
+```{r}
+set.seed(105)
+fit_ob <-
+	rethinking::quap(
+		flist = alist(
+			increment ~ dnorm(mu, sigma),
+			mu <- a[period],
+			a[period] ~ dlnorm(0, 1),
+			sigma ~ dexp(1)
+		),
+		data = o2_l,
+		control = list(maxit = 500)
+	)
+rethinking::precis(fit_ob, depth = 2)
+```
+
+Okay, so we can see that all of the parameters are in the same sort of
+neighborhood, but they definitely appear to be somewhat different. However!
+Recall that we cannot allow ourselves to stare into the void and be mislead.
+We shall first visualize the posterior distributions of these parameters.
+
+```{r}
+set.seed(1344134)
+post <- extract.samples(fit_ob)
+mn <- apply(post$a, 2, mean)
+pi <- apply(post$a, 2, rethinking::PI)
+
+layout(matrix(1:8, nrow = 2, byrow = TRUE))
+for (i in 1:ncol(post$a)) {
+	# Blank plot
+	plot(
+		NULL,
+		xlim = c(0.5, 3.0), ylim = c(0, 3),
+		xlab = paste("Increment", i, "effect (cm)"),
+		ylab = "Density",
+		xaxs = "i", yaxs = "i",
+		cex.lab = 1.5,
+		cex.axis = 1.5
+	)
+	
+	# Mean and 89% PI
+	abline(v = mn[i], col = "red", lty = 2, lwd = 2)
+	abline(v = pi[1, i], col = "red", lty = 2)
+	abline(v = pi[2, i], col = "red", lty = 2)
+	
+	# Density curve
+	rethinking::dens(post$a[, i], add = TRUE, lwd = 3)
+}
+
+# Common title
+mtext(
+	paste(
+		"Posterior distributions of individual increment effects",
+		"(mean and 89% posterior interval)",
+		sep = "\n"
+	),
+	side = 3,
+	line = -3,
+	outer = TRUE,
+	cex = 1.1
+	)
+```
+
+Again, we must be careful not to make any undue comparisons here. These summaries
+are fine for thinking about individual effects, but it does not make sense
+to compare them across parameters.
+So now we shall compute the contrast of interest. We can get the posterior
+of the total growth by creating a contrast across each of the growth
+increments. Of course this contrast will look like
+$c^{\mkern-1.5mu\mathsf{T}} = \langle 1, 1, \ldots, 1 \rangle$
+because we will just be adding up the samples.
+
+```{r}
+layout(1)
+contrast <- rowSums(post$a)
+contrast_mean <- mean(contrast)
+
+plot(
+	NULL,
+	xlim = c(11, 15),
+	ylim = c(0, 1),
+	xlab = "Sum of growth increments (cm)",
+	ylab = "Density",
+	xaxs = "i", yaxs = "i",
+	cex.axis = 1.25,
+	cex.lab = 1.1,
+	tcl = -0.25
+)
+
+plot_dens <- density(contrast, adjust = 0.5)
+
+for (i in c(67, 89, 95, 99) / 100) {
+	shade(plot_dens, PI(contrast, prob = i))
+}
+
+lines(
+	x = rep(contrast_mean, 2),
+	y = c(0, plot_dens$y[which.min(abs(plot_dens$x - contrast_mean))]),
+	lty = 2, lwd = 2
+)
+rethinking::dens(contrast, lwd = 3, add = TRUE)
+```
+
+Here the dashed line shows the posterior mean. The dashed line shows the
+posterior mean, and the shaded regions show equal-tailed credible intervals.
+From darkest to lightest, the coverage for the CIs are, respectively: 67%,
+89%, 95%, 99%.
+
+I think we should also probably do this and include the individual-level
+variance (the estimated sigma parameter), but for right now I'll call it a day.
+We can see that the mean total growth was most likely to be 13 cm over the nine occasions, although a range of values from around 12 to 14 were also quite
+plausible.
 
 <!-- END OF FILE -->
