@@ -33,6 +33,7 @@ book:
       chapters:
         - week1.qmd
         - week2.qmd
+        - week3.qmd
     - references.qmd
 
 bibliography: references.bib

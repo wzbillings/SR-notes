@@ -125,26 +125,26 @@ random normal sample.
 \begin{align*}
 \text{weight}_i &\sim \text{Normal}(\mu, \sigma) \\
 \mu &= \alpha + \beta \cdot \text{age}_i \\
-\alpha &\sim \text{Half-Normal}(0, 5) \\
-\beta &\sim \text{Half-Normal}(0, 5) \\
-\sigma &\sim \text{Exponential}(0.2)
+\alpha &\sim \text{Half-Normal}(0, 1) \\
+\beta &\sim \text{Half-Normal}(0, 1) \\
+\sigma &\sim \text{Exponential}(1)
 \end{align*}
 
-These priors are quite weak, perhaps we should do a prior predictive check
+Perhaps we should do a prior predictive check
 to visualize them before doing anything else.
 
 ```{r}
 set.seed(101)
 pps <-
 	tibble::tibble(
-		a = abs(rnorm(1000, 0, 5)),
-		b = abs(rnorm(1000, 0, 5)),
-		s = rexp(1000, 0.2)
+		a = abs(rnorm(1000, 0, 1)),
+		b = abs(rnorm(1000, 0, 1)),
+		s = rexp(1000, 1)
 	)
 
 plot(
 	NULL,
-	xlim = c(0, 13), ylim = c(-10, 150),
+	xlim = c(0, 13), ylim = c(-10, 40),
 	xlab = "Age", ylab = "Simulated mu",
 	main = "Prior predictive simulation of E[weight | age]"
 )
@@ -186,9 +186,9 @@ hist(
 # Plot showing y vs x with simulated regression lines as well
 plot(
 	NULL,
-	xlim = c(0, 13), ylim = c(-10, 150),
+	xlim = c(0, 13), ylim = c(-10, 40),
 	xlab = "Age", ylab = "Simulated weight",
-	main = "Simulated weights vs simulated ages"
+	main = "Simulated weights vs ages"
 )
 for (i in 1:nrow(pps)) {
 	curve(
@@ -200,7 +200,7 @@ for (i in 1:nrow(pps)) {
 points(sim_age, sim_y)
 ```
 
-Well, we ended up with a few negative and a few riduculously large heights,
+Well, we ended up with a few negative and a few ridiculously large weights,
 but since we're just doing a linear regression here I think we can live with
 that and let the data inform the golem that no one has negative heights.
 Probably we would want to either change the likelihood function or transform
@@ -213,9 +213,9 @@ fit <-
 		flist = alist(
 			weight ~ dnorm(mu, sigma),
 			mu <- a + b * age,
-			a ~ dnorm(0, 5),
-			b ~ dnorm(0, 5),
-			sigma ~ dexp(0.2)
+			a ~ dnorm(0, 1),
+			b ~ dnorm(0, 1),
+			sigma ~ dexp(1)
 		),
 		constraints = alist(
 			a = "lower=0",
@@ -236,18 +236,19 @@ this model.
 \begin{align*}
 \text{weight}_i &\sim \text{Normal}(\mu, \sigma) \\
 \mu &= \alpha + \beta \cdot \text{age}_i \\
-\alpha &\sim \text{Exponential}(0.2) \\
-\beta &\sim \text{Exponential}(0.2) \\
-\sigma &\sim \text{Exponential}(0.2)
+\alpha &\sim \text{Exponential}(1) \\
+\beta &\sim \text{Exponential}(1) \\
+\sigma &\sim \text{Exponential}(1)
 \end{align*}
 
 ```{r}
+layout(matrix(c(1, 2), nrow = 1))
 set.seed(101)
 pps <-
 	tibble::tibble(
-		a = rexp(1000, 0.2),
-		b = rexp(1000, 0.2),
-		s = rexp(1000, 0.2)
+		a = rexp(1000, 1),
+		b = rexp(1000, 1),
+		s = rexp(1000, 1)
 	)
 
 set.seed(102)
@@ -270,7 +271,7 @@ plot(
 	NULL,
 	xlim = c(0, 13), ylim = c(-10, 150),
 	xlab = "Age", ylab = "Simulated weight",
-	main = "Simulated weights vs simulated ages"
+	main = "Simulated weights vs ages"
 )
 for (i in 1:nrow(pps)) {
 	curve(
@@ -283,18 +284,20 @@ points(sim_age, sim_y)
 ```
 
 Yes, this definitely results in a more left-skewed distribution, but I think
-it will work out fine in the model (like before). So I'm not too pressed about
+that is actually good, since we don't expect a lot of kids to weight 50+
+kilograms. So I'm not too pressed about
 it. Now let's finally fit the model, for real.
 
 ```{r}
+set.seed(101)
 fit <-
 	rethinking::quap(
 		flist = alist(
 			weight ~ dnorm(mu, sigma),
 			mu <- a + b * age,
-			a ~ dexp(0.2),
-			b ~ dexp(0.2),
-			sigma ~ dexp(0.2)
+			a ~ dexp(1),
+			b ~ dexp(1),
+			sigma ~ dexp(1)
 		),
 		data = list(
 			weight = h1$weight,
@@ -323,12 +326,10 @@ one or more posterior contrasts as a summary.
 So what we are assuming here is that the effect of age is different for
 males and females -- we'll also allow the intercept to vary by sex, meaning that
 males and females can also have a different weight at birth on average.
-We'll use a similar model from before other than these changes. I had some issues
-with convergence of the quap algorithm so I made the priors a bit less diffuse,
-which McElreath would argue is probably better anyways.
+We'll use a similar model from before other than these changes.
 \begin{align*}
 \text{weight}_i &\sim \text{Normal}(\mu, \sigma) \\
-\mu &= \alpha_{\text{Sex_i}} + \beta \cdot \text{age}_{\text{Sex}_i} \\
+\mu &= \alpha_{\text{Sex}_i} + \beta \cdot \text{age}_{\text{Sex}_i} \\
 \alpha_{j} &\sim \text{Exponential}(1) \\
 \beta_{j} &\sim \text{Exponential}(1) \\
 \sigma &\sim \text{Exponential}(1)
@@ -566,8 +567,7 @@ So let's plot the distribution of each increment.
 ```{r}
 set.seed(100)
 layout(cbind(
-	matrix(c(1:8), nrow = 2, ncol = 4, byrow = TRUE),
-	matrix(rep(9, 8), nrow = 2, ncol = 4)
+	matrix(c(1:8), nrow = 2, ncol = 4, byrow = TRUE)
 ))
 
 # Histograms of each increment
@@ -583,6 +583,7 @@ for (i in 1:8) {
 	)
 }
 
+layout(1)
 # Boxplot for each increment
 boxplot(
 	increment ~ period,
@@ -606,24 +607,45 @@ stripchart(
 There is definitely some variance in each increment, so I think it makes sense
 to use a model that looks like this
 \begin{align*}
-\text{Increment}_i &\sim \text{Normal}(\mu, \sigma) \\
+\text{Increment}_i &\sim \text{Lognormal}(\mu, \sigma) \\
 \mu &= \alpha_{\text{Period}_i} \\
-\alpha &\sim \text{Lognormal}(0, k) \\
-\sigma &\sim \text{Exponential}(1)
+\alpha &\sim \text{Normal}(0, k) \\
+\sigma &\sim \text{Exponential}(10)
 \end{align*}
 
 instead of a model that looks like this
 
 \begin{align*}
-\text{Increment}_i &\sim \text{Normal}(\mu, \sigma) \\
+\text{Increment}_i &\sim \text{Lognormal}(\mu, \sigma) \\
 \mu &= \alpha + \beta_i \cdot \text{Period}_i \\
 \alpha &\sim \text{Prior}() \\
-\beta &\sim \text{Lognormal}(0, k) \\
-\sigma &\sim \text{Exponential}(1)
+\beta &\sim \text{Normal}(0, k) \\
+\sigma &\sim \text{Exponential}(10)
 \end{align*}
 
-here increment is the difference, and period is the same as occasion
-minus 1. So the increment over the first period is the difference between
+> McElreath also chose to constrain the alpha parameters to all be the same,
+which I think is fine and makes the model much simpler. But since we were
+interested in the posterior distribution of their sum anyways, I prefer
+to leave the model like this anyways. Besides, from the histogram we saw that
+some of them were different -- I'm not sure if this is a good biological
+assumption or not though since I don't really know enough about this problem.
+
+where increment is the difference, and period is the same as occasion
+minus 1. We still need to choose $k$. Since we have a lognormal distribution,
+the variance parameter should be biased to be small (untuitively we do this
+by making the exponential parameter larger) or else when we do the log
+part, the means will get really big. This is also true for $k$, which I decided
+to simulate instead of just picking to be big.
+
+> Note that I originally used a normal regression with a lognormal prior,
+but I read McElreath's solution and decided to update this to use a
+lognormal regression with a normal prior, which I think is actually much
+better. If you use a Gaussian model for this, you run the risk of
+randomly getting growth increments from the model that are negative, which
+we specifically wanted to avoid in this problem.
+
+
+So the increment over the first period is the difference between
 the second height measurement and the first height measurement. (I also
 think that this is what the problem is asking for.)
 
@@ -646,7 +668,7 @@ produces insane results.
 
 ```{r}
 set.seed(2323)
-k <- c(0.1, 0.25, 0.5, 1, 1.25, 1.5) # Values to try
+k <- c(0.05, 0.1, 0.25, 0.5, 1, 1.5) # Values to try
 N <- 1000 # Number of simulations
 
 # Create a container for the output
@@ -654,7 +676,8 @@ pps <- matrix(nrow = N, ncol = length(k))
 
 # Do the simulation
 for (i in 1:length(k)) {
-	pps[, i] <- rlnorm(N, 0, k[i])
+	pps[, i] <- rlnorm(N, rnorm(N, 0, k[i]), rexp(N, 10))
+	
 }
 
 # Make a plot
@@ -666,7 +689,7 @@ for (i in 1:length(k)) {
 
 Wow, I forgot how hard it is to choose parameters for a lognormal prior. That
 scaling parameter really starts to act up quickly. So for this problem,
-I'll choose $k=1$ since it creates a prior that, in general, constrains our
+I'll choose $k=0.5$ since it creates a prior that, in general, constrains our
 values to what seems "reasonable" but also allows the parameter to get
 large if it needs to, due to the tail of the distribution.
 
@@ -674,8 +697,8 @@ So to recap before we fit, our final model will be this.
 \begin{align*}
 \text{Increment}_i &\sim \text{Normal}(\mu, \sigma) \\
 \mu &= \alpha_{\text{Period}_i} \\
-\alpha &\sim \text{Lognormal}(0, 1) \\
-\sigma &\sim \text{Exponential}(1)
+\alpha &\sim \text{Lognormal}(0, 0.5) \\
+\sigma &\sim \text{Exponential}(10)
 \end{align*}
 
 ```{r}
@@ -683,10 +706,10 @@ set.seed(105)
 fit_ob <-
 	rethinking::quap(
 		flist = alist(
-			increment ~ dnorm(mu, sigma),
+			increment ~ dlnorm(mu, sigma),
 			mu <- a[period],
-			a[period] ~ dlnorm(0, 1),
-			sigma ~ dexp(1)
+			a[period] ~ dnorm(0, 0.5),
+			sigma ~ dexp(10)
 		),
 		data = o2_l,
 		control = list(maxit = 500)
@@ -710,7 +733,7 @@ for (i in 1:ncol(post$a)) {
 	# Blank plot
 	plot(
 		NULL,
-		xlim = c(0.5, 3.0), ylim = c(0, 3),
+		xlim = c(-1.5, 1.5), ylim = c(0, 4.5),
 		xlab = paste("Increment", i, "effect (cm)"),
 		ylab = "Density",
 		xaxs = "i", yaxs = "i",
@@ -752,13 +775,19 @@ because we will just be adding up the samples.
 
 ```{r}
 layout(1)
-contrast <- rowSums(post$a)
+
+# Sample the growth increments from the posterior
+# and then add them up
+contrast <- sapply(
+	1:1000,
+	\(i) sum(rlnorm(8, post$a[i, ], post$sigma[i]))
+)
 contrast_mean <- mean(contrast)
 
 plot(
 	NULL,
-	xlim = c(11, 15),
-	ylim = c(0, 1),
+	xlim = c(0, 30),
+	ylim = c(0, 0.18),
 	xlab = "Sum of growth increments (cm)",
 	ylab = "Density",
 	xaxs = "i", yaxs = "i",
@@ -790,5 +819,12 @@ I think we should also probably do this and include the individual-level
 variance (the estimated sigma parameter), but for right now I'll call it a day.
 We can see that the mean total growth was most likely to be 13 cm over the nine occasions, although a range of values from around 12 to 14 were also quite
 plausible.
+
+> This looks quite similar to McElreath's solution where the alpha for each
+increment is required to be the same, with one major difference. The slope
+of the density is much more gradual to the left of the mean in my estimated
+distribution. This could be sampling variation, or it could be that one (or more) of the
+increments is typically smaller than the others in this population, and drags
+down the overall average parameter value when they are constrained to be the same.
 
 <!-- END OF FILE -->
