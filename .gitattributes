@@ -3,3 +3,4 @@
 docs/* linguist-vendored
 _freeze/* linguist-vendored
 renv/* linguist-vendored
+*.bib linguist-vendored
