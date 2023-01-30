@@ -1,1 +1,5 @@
 *.qmd linguist-language=RMarkdown
+*.js linguist-vendored
+docs/* linguist-vendored
+_freeze/* linguist-vendored
+renv/* linguist-vendored
