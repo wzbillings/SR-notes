@@ -1,0 +1,215 @@
+# Week 4 Homework
+
+This homework covers the material from Lectures 7 and 8, and the content from
+book Chapters 7, 8, and 9. The questions are reproduced almost identically from
+[Richard McElreath's original assignment](https://github.com/rmcelreath/stat_rethinking_2023/blob/main/homework/week04.pdf), I did not write them. I only wrote these solutions.
+
+```{r setup}
+library(rethinking)
+```
+
+
+::: {.callout-note appearance="simple" icon=false}
+
+**1.** Revisit the marriage, age, and happiness collider bias example from
+Chapter 6. Run models `m6.9` and `m6.10` again (pages 178-179). Compare these
+two models using both PSIS and WAIC. Which model is expected to make
+better predictions, according to these criteria, and which model yields the
+correct causal inference?
+
+:::
+
+OK, first we will fit the models. Since these are exactly the same as in the
+book, the results will be similar and I won't spend a lot of time on them.
+
+```{r q1 model fitting}
+# Data setup
+d <- sim_happiness(seed = 1977, N_years = 1000)
+d2 <- d[d$age > 17, ]
+d2$A <- (d2$age - 18) / (65 - 18)
+d2$M <- d2$married + 1
+
+set.seed(134123)
+
+# First model: 
+m6.9 <-
+	quap(
+		alist(
+			happiness ~ dnorm(mu, sigma),
+			mu <- a[M] + bA * A,
+			a[M] ~ dnorm(0, 1),
+			bA ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = d2
+	)
+
+# Second model
+m6.10 <-
+	quap(
+		alist(
+			happiness ~ dnorm(mu, sigma),
+			mu <- a + bA * A,
+			a ~ dnorm(0, 1),
+			bA ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = d2
+	)
+```
+
+OK, now we want to score the models by PSIS and WAIC. Let's do PSIS first.
+
+```{r}
+PSIS(m6.9)
+PSIS(m6.10)
+```
+
+And now the WAIC.
+
+```{r}
+WAIC(m6.9)
+WAIC(m6.10)
+```
+
+OK, so for this model they are basically the same. But either way, we
+see that model `m6.9`, which stratifies by marriage, is **better at**
+**prediction**! However, we know that `m6.10` actually makes the correct
+causal inference. This should not surprised us, because colliders contain
+information -- even if they distort causal estimates, including them will
+often work better for prediction.
+
+::: {.callout-note appearance="simple" icon=false}
+
+**2.** Reconsider the urban fox analysis from last week's homework. On the
+basis of PSIS and WAIC scores, which combination of variables best predicts
+body weight? What causal interpretation can you assign each coefficient
+from the best scoring model?
+
+:::
+
+First I'll fit the two models that we were using at the end of last week's
+homework -- the model for the direct effect of $F$ and the model for the
+total effect of $F$ (which we recall that we could not accurately estimate
+due to an unmeasured confounder). We'll also add an additional "kitchen sink"
+model that includes age (even though it is a precision parasite), just
+because we also have that. There are
+seven different models that we could choose, but I think these three will
+probably be sufficient.
+
+```{r}
+# Set up data
+data(foxes)
+D <-
+	foxes |>
+	dplyr::select(
+		F = avgfood,
+		A = area,
+		W = weight,
+		G = groupsize
+	) |>
+	dplyr::mutate(
+		dplyr::across(dplyr::everything(), standardize)
+	) |>
+	as.list()
+
+# Fit the two models
+set.seed(193482)
+kitchen_sink <-
+	rethinking::quap(
+		flist = alist(
+			W ~ dnorm(mu, sigma),
+			mu <- a + bF * F + bG * G + bA * A,
+			a ~ dnorm(0, 2),
+			bF ~ dnorm(0, 2),
+			bG ~ dnorm(0, 2),
+			bA ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = D,
+		control = list(maxit = 500)
+	)
+f_direct <-
+	rethinking::quap(
+		flist = alist(
+			W ~ dnorm(mu, sigma),
+			mu <- a + bF * F + bG * G,
+			a ~ dnorm(0, 2),
+			bF ~ dnorm(0, 2),
+			bG ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = D,
+		control = list(maxit = 500)
+	)
+f_total <-
+	rethinking::quap(
+		flist = alist(
+			W ~ dnorm(mu, sigma),
+			mu <- a + bF * F,
+			a ~ dnorm(0, 2),
+			bF ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = D,
+		control = list(maxit = 500)
+	)
+
+coeftab(kitchen_sink, f_direct, f_total) |>
+	coeftab_plot(pars = c("bA", "bF", "bG"))
+```
+
+OK, now we can calculate the PSIS and WAIC for all of these.
+
+```{r}
+sapply(list(kitchen_sink, f_direct, f_total), PSIS) |>
+	`colnames<-`(c("A, G, F", "F, G", "F"))
+
+sapply(list(kitchen_sink, f_direct, f_total), WAIC) |>
+	`colnames<-`(c("A, G, F", "F, G", "F"))
+```
+
+Here we get a little bit of a competition, but not much of one. We can see
+that the "kitchen sink" model wins by less than a point for PSIS, but
+the direct causal model wins by less than a point for WAIC. That's obviously
+due to approximation error, it doesn't matter which one
+wins by just a few points. Clearly we can see that the model for the direct
+causal effect beats out the model for the total causal effect, which makes
+sense because both of these variables encode unique information about the
+outcome (from our causal model, $A$ does not).
+
+For the best model, we can infer the *direct* causal effects of $F$ and $G$,
+but not the *total* causal effect of $F$.
+
+::: {.callout-note appearance="simple" icon=false}
+
+**3.** Build a predictive model of the relationship shown on the cover of the
+book, the relationship between the timing of cherry blossoms and March
+temperature in the same year. The data are found in `data(cherry_blossoms)`.
+Consider at least two different models (functional relationships) to
+predict `doy` with `temp`. Compare them with PSIS or WAIC.
+
+Suppose March temperatures reach 9 degrees by the year 2050. What does your
+best model predict for the predictive distribution of the day-in-year that the
+cherry trees will blossom?
+
+:::
+
+
+
+::: {.callout-note appearance="simple" icon=false}
+
+**4.** The data in `data(Dinosaurs)` are body mass estimates at different
+estimated ages for six different dinosaur species. Choose one or more of these
+species and make a predictive model of body mass using age as a predictor.
+Consider two or more model types for the function relating age to body mass and
+score each using PSIS and WAIC.
+
+Which model do you think is best, on predictive grounds? On scientific grounds?
+If your answers to these questions differ, why?
+
+:::
+
+
+
+<!-- END OF FILE -->
