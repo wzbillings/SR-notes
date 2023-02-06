@@ -195,7 +195,171 @@ cherry trees will blossom?
 
 :::
 
+OK, I feel like I kind of already did this one in the textbook work I've
+done, but let's go through it as a fun exercise anyways. First we need to
+process the data, which I'll do the same way he did in the book.
 
+```{r}
+data("cherry_blossoms")
+d <- cherry_blossoms
+d2 <- d[complete.cases(d$doy, d$temp), ]
+
+# Also standardize the data
+d3 <-
+	list(
+		doy = standardize(d2$doy),
+		temp = standardize(d2$temp)
+	)
+```
+
+I'll compare the null model, a linear model, a quadratic model, and a
+spline-based model similar to the one from the book. I'll just use kind of
+random priors on this without a lot of explanation, just fiddling until the
+models seems to work correctly. Then I'll compare the models.
+
+```{r}
+# Null model (intercept only)
+q3_m1 <-
+	quap(
+		alist(
+			doy ~ dnorm(mu, sigma),
+			mu <- a,
+			a ~ dnorm(0, 3),
+			sigma ~ dexp(1)
+		),
+		data = d3
+	)
+
+# Linear model
+q3_m2 <-
+	quap(
+		alist(
+			doy ~ dnorm(mu, sigma),
+			mu <- a + b * temp,
+			a ~ dnorm(0, 3),
+			b ~ dnorm(0, 3),
+			sigma ~ dexp(1)
+		),
+		data = d3
+	)
+
+# Quadratic model
+q3_m3 <-
+	quap(
+		alist(
+			doy ~ dnorm(mu, sigma),
+			mu <- a + b1 * temp + b2 * (temp ^ 2),
+			a ~ dnorm(0, 3),
+			b1 ~ dnorm(0, 3),
+			b2 ~ dnorm(0, 3),
+			sigma ~ dexp(1)
+		),
+		data = d3
+	)
+
+# Power law model
+q3_m4 <-
+	quap(
+		alist(
+			doy ~ dnorm(mu, sigma),
+			mu <- a + b * temp,
+			a ~ dnorm(0, 3),
+			b ~ dnorm(0, 3),
+			sigma ~ dexp(1)
+		),
+		data = list(
+			doy = standardize(log(d2$doy)),
+			temp = standardize(log(d2$temp))
+		)
+	)
+
+# Spline model
+# Create the splits
+nk <- 15
+knot_list <- quantile(d3$temp, probs = seq(0, 1, length.out = nk))
+B <-
+	splines::bs(
+		x = d3$temp,
+		knots = knot_list[-c(1, nk)],
+		degree = 3,
+		intercept = TRUE
+	)
+
+q3_m5 <-
+	quap(
+		flist = alist(
+			doy ~ dnorm(mu, sigma),
+			mu <- a + B %*% w,
+			a ~ dnorm(100, 10),
+			w ~ dnorm(0, 10),
+			sigma ~ dexp(1)
+		),
+		data = list(doy = d3$doy, B = B),
+		start = list(w = rep(0, ncol(B)))
+	)
+```
+
+All the models fit fine so I assume my randomly guessed priors were OK. First
+we'll compare with WAIC.
+
+```{r}
+compare(q3_m1, q3_m2, q3_m3, q3_m4, q3_m5)
+```
+
+And now with PSIS.
+
+```{r}
+compare(
+	q3_m1, q3_m2, q3_m3, q3_m4, q3_m5,
+	sort = "PSIS",
+	func = PSIS
+)
+```
+
+OK, so both the WAIC the the PSIS comparison give us the same result. The
+linear model is actually the best fit, jujst by a hair. If we take the SE
+into account, the linear, quadratic, and power law models all seem to fit
+pretty decent. The spline model is a bit worse, within one SE, and all
+of the "real" models are better than the null model. My guess is that
+while the spline model is flexible, it doesn't gain enough predictive power
+from this flexibility in order to be "worth" the large number of parameters
+needed.
+
+Now let's plot the results to get a better idea of what we're looking at.
+
+```{r}
+post <- sim(q3_m2)
+out <- colMeans(post * sd(d2$doy) + mean(d2$doy))
+plot(
+	d2$doy, out,
+	xlab = "Actual DoY", ylab = "Predicted DoY"
+)
+
+plot(
+	d2$year, d2$doy, type = "l"
+)
+shade(
+	apply(post, 2, \(x) rethinking::PI(x* sd(d2$doy) + mean(d2$doy)) ),
+	d2$year,
+	col = rethinking::col.alpha("gray", alpha = 0.75)
+)
+lines(d2$year, out, col = "red", lwd = 3)
+
+
+plot(
+	NULL, xlim = range(d2$year), ylim = c(-20, 20)
+)
+shade(
+	apply(post, 2, \(x) rethinking::PI(x  * sd(d2$doy) + mean(d2$doy) - d2$doy)),
+	d2$year,
+	col = rethinking::col.alpha("gray", alpha = 0.75)
+)
+lines(d2$year, out - d2$doy, type = "l", col = "red", lwd = 2)
+```
+
+
+Finally, let's look at the distribution of predictions for if we set the
+temperature to 9 degrees.
 
 ::: {.callout-note appearance="simple" icon=false}
 
