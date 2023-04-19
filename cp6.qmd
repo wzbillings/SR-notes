@@ -1,7 +1,7 @@
 ---
 output: html_document
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 # The Haunted DAG and the Causal Terror
 
@@ -11,6 +11,134 @@ This chapter discusses three common pitfalls that can lead our statistical model
 
 * The **Selection-distortion effect** (AKA Berkson's bias, generalized to the idea of collider bias) occurs when the selection of a sample changes the relationship between the observed variables. (I.e. there is/isn't a relationship between the two variables on the sample, but in the larger population, there isn't/is a relationship.) Berkson's bias refers to the particular effect that when selecting from a population on two desirable traits, there often appears to be a negative correlation between the desirable traits in the selected sample.
 * **Multicollinearity** refers to a very strong association between two or more predictor variables, conditional on the other variables in the model. When variables are multicollinear, the posterior distribution will seem to suggest that none of the multicollinear variables are truly associated with the outcome, even if the reality is that they are all strongly associated.
-* 
+* **Post-treatment bias**: a form of *included variable bias* where variables
+that are also causal descendents of the treatment, are controlled for when
+assessing the response. That is, you measure something that is not the
+outcome of interest and is also affected by the treatment, and you adjust for
+that quantity when analyzing the outcome. This induces collider bias.
+* Controlling for a collider on a DAG induces *D*-separation, meaning that
+the DAG is no longer connected.
+* When you condition on a collider (a common descendent), it creates statistical,
+although not necessarily causal, relationships between the ancestors.
+* Even unmeasured causes can induce collider bias. Selection bias in a study
+can often be interpreted as conditioning on a collider during the sampling
+process. See the parents and grandparents example in section 6.3.2.
+* There are four types of elemental confounds: DAG structures that allow
+us to determine causal and non-causal pathways.
+	+ The fork: two variables have a common cause (Z -> X; Z -> Y).
+	+ The pipe: one variable is intermediate in the causal relationship between
+	two others (X -> Z -> Y).
+	+ The collider: two variables have a common descenent (X -> Z; Y -> Z).
+	+ The descendant: a variable which descends from another, capturing part
+	of the ancestor's statistical signal (in the previous example, if we also
+	have Z -> D, D will appear to be a collider as well, even if it is just
+	a descendant).
+* Every DAG is built out of these four types of relationships, and we can
+use specific rules for DAGs to determine what variables need to be included
+in models for a causal effect.
+* "Multiple regression is no oracle, but only a golem."
 
 ## Exercises
+
+### 6E1
+
+Three mechanisms that can produce false inferences about causal
+effects in a multiple regression model are: multicollinearity, the selection-
+distortion effect, and post-treatment bias.
+
+### 6E2
+
+For an example of post-treatment bias, consider a vaccine efficacy trial for
+influenza (or I guess any disease). Suppose we have a known surrogate of
+protection, an immunological measurement that is strongly associated with
+protection from the disease. For influenza, one potential biomarker is
+hemagglutinin inhibition (HI) titer, which is typically measured before
+and after (around 21 to 28 days) vaccination. If one did a challenge study or
+a long followup period of surveillance, we can record which individuals are
+ultimately infected with influenza. Including participants' HI titers *before*
+vaccination when modeling vaccine protection is OK depending on the context,
+but including participants HI titer *after*
+vaccination would induce post-treatment bias, because vaccination directly
+affects HI titer.
+
+### 6E3
+
+1. The fork (`Z -> X`; `Z -> Y`): `X ⫫ Y | Z`
+1. The pipe (`X -> Z -> Y`): `X ⫫ Y | Z`
+1. The collider (`X -> Z`; `Y -> Z`): `X ⫫ Y`; `X !⫫ Y | Z`
+1. The descendent: conditional independencies are the same as the parent
+
+### 6E4
+
+Suppose we have two variables (call one the exposure and the other the outcome)
+which are both causes of a third variable. If that third variable determines
+which observations we observe (for example, a restaurant existing or a
+patient agreeing to participate in a study), in our observed sample
+we will see a correlation between the exposure and the outcome, just because
+we are only seeing observations where the third variable is already specified.
+
+In the funded grants example, a funded grant must be high in at least one of
+newsworthiness or trustworthiness, otherwise it will not be funded. If we
+could see all grants, we would not see a correlation between newsworthiness
+and trustworthiness. But when we only look at funded grants, we condition on
+a common descendant of both variables (a collider), which makes a spurious
+relationship appear.
+
+## 6M1
+
+The new DAG including $V$ as an unobserved common cause of $C$ and $Y$ looks
+like this.
+
+```{r}
+dag_6m1 <- dagitty::dagitty(
+	"dag {
+		U [unobserved]
+		V [unobserved]
+		X -> Y
+		X <- U <- A -> C -> Y
+		U -> B <- C
+		C <- V -> Y
+	}"
+)
+dagitty::coordinates(dag_6m1) <-
+	list(
+		x = c(U = 1, V = 4, X = 1, Y = 3, A = 2, B = 2, C = 3),
+		y = c(U = 1.5, V = 2.5, X = 3, Y = 3, A = 1, B = 2, C = 1.5)
+	)
+plot(dag_6m1)
+```
+
+## 6M2
+
+First we do the simulation.
+
+```{r}
+X <- rnorm(100, 0, 1)
+Z <- rnorm(100, X + 1, 0.1)
+Y <- rnorm(100, 2 * Z + 1, 2)
+
+cor(cbind(X, Z, Y))
+```
+
+
+## 6M3
+
+Here are the adjustment sets for each of the DAGs shown.
+
+* Top left DAG: `Z` only
+* Top right: nothing
+* Bottom left: nothing
+* Bottom right: `A` only
+
+I also checked using dagitty to verify my answers.
+
+```{r}
+dag1 <- dagitty::dagitty("dag {Z -> X -> Y; A -> Z -> Y; A -> Y}")
+dag2 <- dagitty::dagitty("dag {X -> Z -> Y; A -> Z -> Y; A -> Y}")
+dag3 <- dagitty::dagitty("dag {X -> Y -> Z; A -> X -> Z; A -> Z}")
+dag4 <- dagitty::dagitty("dag {A -> X -> Z; A -> Z -> Y; X -> Y}")
+
+lapply(list(dag1, dag2, dag3, dag4), dagitty::adjustmentSets, "X", "Y")
+```
+
+
