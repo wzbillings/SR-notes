@@ -3,6 +3,11 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
+
+```{r setup, include = FALSE}
+library(rethinking)
+```
+
 # The Haunted DAG and the Causal Terror
 
 This chapter discusses three common pitfalls that can lead our statistical models to misbehave and make our causal interpretations difficult or incorrect. The three major topics are collider bias (selection-distortion), multicollinearity in regression models, and post-treatment bias. The chapter further expands on the idea of DAGs as graphical causal models that was introduced in the previous chapter.
@@ -105,21 +110,84 @@ dagitty::coordinates(dag_6m1) <-
 		x = c(U = 1, V = 4, X = 1, Y = 3, A = 2, B = 2, C = 3),
 		y = c(U = 1.5, V = 2.5, X = 3, Y = 3, A = 1, B = 2, C = 1.5)
 	)
+dagitty::exposures(dag_6m1) <- "X"
+dagitty::outcomes(dag_6m1) <- "Y"
 plot(dag_6m1)
+```
+
+We still have all of the same paths from the previous example, i.e.:
+
+* $X \to Y$,
+* $X \leftarrow U \leftarrow A \to C \to Y$, and
+* $X \leftarrow U \to B \leftarrow C \to Y$.
+
+The first path is the direct path. The second is an open backdoor path through
+$A$. The third is a closed backdoor path, as it passes through the collider $B$.
+By adding the unobserved confounder $V$, we create two new backdoor paths,
+
+* $X \leftarrow U \leftarrow A \to C \leftarrow V \to Y$, and
+* $X \leftarrow U \to B \leftarrow C \leftarrow V \to Y$.
+
+The first path is an open backdoor path, and the second path is a closed
+backdoor path. We can check which paths exist and are open with dagitty.
+
+```{r}
+dagitty::paths(dag_6m1)
+```
+
+Now we need to close the two open paths, without opening either of the closed
+paths. Conditioning on $C$ would close both of the open paths, but would also
+open the fifth path. However, conditioning on $A$ will close both open
+paths without opening either of the closed paths. So $\{A\}$ is our
+sufficient adjustment set. We can verify this with dagitty.
+
+```{r}
+dagitty::adjustmentSets(dag_6m1)
 ```
 
 ## 6M2
 
-First we do the simulation.
+First we'll do the simulation: we want $X$ and $Z$ to be highly correlated.
 
 ```{r}
+set.seed(101)
 X <- rnorm(100, 0, 1)
-Z <- rnorm(100, X + 1, 0.1)
-Y <- rnorm(100, 2 * Z + 1, 2)
+Z <- rnorm(100, X, 0.5)
+Y <- rnorm(100, Z, 1)
 
 cor(cbind(X, Z, Y))
 ```
 
+We can see that all of the variables are strongly associated, but $X$ and $Z$
+have a particularly strong correlation.
+But now we want to use a model that adjusts for both.
+
+```{r}
+fit_6m1 <-
+	rethinking::quap(
+		flist = alist(
+			Y ~ dnorm(mu, sigma),
+			mu <- a + bX * X + bZ * Z,
+			a ~ dnorm(0, 0.5),
+			c(bX, bZ) ~ dnorm(0, 1),
+			sigma ~ dexp(1)
+		),
+		data = list(X = X, Y = Y, Z = Z)
+	)
+
+coeftab(fit_6m1) |>
+	coeftab_plot(pars = c("bX", "bZ"))
+```
+
+Interestingly, we can see that we do not get the same problem as the previous
+multicollinearity example. The confidence intervals appear to be reasonable,
+and we see a strong effect of $Z$ but no effect of $Y$. Intuitively, this make
+sense -- $Z$ and $Y$ have a stronger correlation than $X$ and $Y$, so after
+we control for $Z$, the model "finds" all of the signal, and then does not
+find an effect of $X$. So if we interpreted this model without considering the
+causal framework, we would still be mislead by the multicollinearity, but
+there is nothing obviously wrong -- the entire causal effect of $X$ on $Z$ is
+through $Z$, so this estimate of the direct causal effect of $X$ makes sense.
 
 ## 6M3
 
@@ -141,4 +209,223 @@ dag4 <- dagitty::dagitty("dag {A -> X -> Z; A -> Z -> Y; X -> Y}")
 lapply(list(dag1, dag2, dag3, dag4), dagitty::adjustmentSets, "X", "Y")
 ```
 
+## 6H1
 
+Using the Waffle House data, we want to find the total causal influence of
+number of Waffle Houses on divorce rate. First, let's look at what we have
+to work with.
+
+```{r}
+data("WaffleDivorce")
+head(WaffleDivorce)
+```
+
+OK, so of course we will assume that there is a direct causal effect of number
+of Waffle Houses ($W$) on divorce rate ($D$). From previous work, we know
+our data are consistent with a $M \to A \to D$ DAG structure, for $M$ the
+marriage rate and $A$ the median age at marriage, so we'll incorporate this
+into our DAG. We also saw that the data are consistent with being in the
+South affecting $M$ and $A$, so we'll include that in our DAG, and of course
+we expect to see $S \to W$. Finally, since we're trying to find the **total**
+causal effect of $W$, we'll include $A \leftarrow W \rightarrow M$ as a sub-DAG
+as well. Putting it all together, our DAG looks like this.
+
+```{r}
+dag_6h1 <-
+	dagitty::dagitty(
+		"dag {
+		M -> A -> D
+		M <- S -> A
+		S -> W
+		W -> D
+		M <- W -> A
+		}"
+	)
+dagitty::exposures(dag_6h1) <- "W"
+dagitty::outcomes(dag_6h1) <- "D"
+dagitty::coordinates(dag_6h1) <-
+		list(
+		x = c(S = 1, W = 2, D = 2.7, M = 1, A = 2),
+		y = c(S = 1, W = 1, D = 1.5, M = 2, A = 2)
+	)
+
+plot(dag_6h1)
+```
+
+Let's now figure out what needs to be in our model.
+
+```{r}
+dagitty::adjustmentSets(dag_6h1)
+```
+
+We see that to get the total cause effect of $W$ on $D$, we need only
+adjust for $S$, being in the South. I should probably worry about things like
+transformations and zero-inflation, but for this exercise I am not going to do
+that.
+
+```{r}
+wd <- 
+	list(
+		W = standardize(WaffleDivorce$WaffleHouses),
+		D = standardize(WaffleDivorce$Divorce),
+		S = WaffleDivorce$South
+	)
+```
+
+Now we'll fit the model. I'll allow the intercept to be different for Southern
+and non-Southern states, but because we're interested in the total causal effect
+of Waffle House Numbers, I'll force the effect to be the same across both groups.
+
+```{r}
+set.seed(100)
+fit_6h1 <-
+	rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a[S] + b * W,
+			a[S] ~ dnorm(0, 1),
+			b ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = wd
+	)
+
+rethinking::precis(fit_6h1, depth = 2)
+```
+
+OK, I'm getting a warning but I don't think it's doing anything. So I'll just
+ignore it. For this model, we can see that there is a **strongly positive**
+effect of $b$. Let's look at the posterior distribution.
+
+```{r}
+post_6h1 <- extract.samples(fit_6h1)
+dens(post_6h1$b)
+abline(v = 0, lty = 2)
+```
+
+We can see that almost all of the posterior density is above zero, indicating
+that there is a **positive effect** of Waffle Houses on divorce rate. For every
+1 standard deviation increase in the number of Waffle Houses in a state, the
+divorce rate is expected to increase by about 0.25 units. Let's put that back
+from standardized units into real units.
+
+```{r}
+1 * attr(wd$W, "scaled:scale") + attr(wd$W, "scaled:center")
+0.25 * attr(wd$D, "scaled:scale") + attr(wd$D, "scaled:center")
+```
+
+So we see that we expect the divorce rate to increase by about $10\%$ for every
+98 additional Waffle Houses, or approximately $0.1\%$ per Waffle House. This
+is the total causal effect based on our DAG, even though I would guess that the
+direct effect is zero and this entire effect is through location.
+
+### 6H2
+
+First, we need to check the implied causal independencies of the DAG.
+
+```{r}
+dagitty::impliedConditionalIndependencies(dag_6h1)
+```
+
+Test one: $D$ and $M$ should be independent after adjusting for $A$ and
+$W$.
+
+```{r}
+set.seed(100)
+wd2 <- c(
+	wd,
+	M = list(standardize(WaffleDivorce$Marriage)),
+	A = list(standardize(WaffleDivorce$MedianAgeMarriage))
+)
+
+fit_6h2_a1 <-
+	rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + bm * M + ba * A + bw * W,
+			a ~ dnorm(0, 1),
+			c(bm, ba, bw) ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = wd2
+	)
+
+fit_6h1_a2 <-
+		rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + bm * M,
+			a ~ dnorm(0, 1),
+			c(bm) ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = wd2
+	)
+
+rethinking::coeftab(
+	fit_6h2_a1,
+	fit_6h1_a2
+) |>
+	rethinking::coeftab_plot(pars = c("bm"))
+```
+
+Yes, we can see that if we only include $M$ (`fit_6h1_a2`), we see an effect,
+but if we control for $A$ and $W$, as in `fit_6h1_a1`, we do not.
+
+Now let's check the second test: $D$ and $S$ should be independent if we
+control for $A$ and $W$.
+
+```{r}
+set.seed(100)
+fit_6h2_b1 <-
+	rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + bs * S + ba * A + bw * W,
+			a ~ dnorm(0, 1),
+			c(bs, ba, bw) ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = wd2
+	)
+
+fit_6h1_b2 <-
+		rethinking::quap(
+		flist = alist(
+			D ~ dnorm(mu, sigma),
+			mu <- a + bs * S,
+			a ~ dnorm(0, 1),
+			c(bs) ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = wd2
+	)
+
+rethinking::coeftab(
+	fit_6h2_b1,
+	fit_6h1_b2
+) |>
+	rethinking::coeftab_plot(pars = c("bs"))
+```
+
+We see exactly the same interpretation here: when only $S$ is in the model,
+all of the posterior density is above 0, but when we control for $A$ and $W$,
+a significant portion is below zero and the mean is lower. So I think we
+can say that our data appear to be consistent with the conditional
+independencies that our DAG implies.
+
+We can also do these tests automatically used the method recommended by dagitty.
+I don't know that much about these results, but they agree with our modeling
+results, which is good!
+
+```{r}
+dagitty::localTests(
+	dag_6h1,
+	sample.cov = lavaan::lavCor(as.data.frame(wd2)),
+	sample.nobs = nrow(as.data.frame(wd2))
+)
+```
+
+
+
+<!-- END OF FILE -->
