@@ -268,7 +268,7 @@ wd <-
 	list(
 		W = standardize(WaffleDivorce$WaffleHouses),
 		D = standardize(WaffleDivorce$Divorce),
-		S = WaffleDivorce$South
+		S = WaffleDivorce$South + 1
 	)
 ```
 
