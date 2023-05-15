@@ -426,6 +426,251 @@ dagitty::localTests(
 )
 ```
 
+## 6H3
+
+Now we are back to the fox problems. I'll reproduce the DAG first just so I
+have it in my notes.
+
+```{r}
+fox_dag <-
+	dagitty::dagitty(
+		"dag {
+		A -> F -> G -> W
+		F -> W
+		}"
+	)
+dagitty::coordinates(fox_dag) <-
+	list(
+		x = c(A = 2, F = 1, G = 3, W = 2),
+		y = c(A = 1, F = 2, G = 2, W = 3)
+	)
+plot(fox_dag)
+```
+
+First, we want to infer the total causal influence of area (A) on weight (W).
+I'll go ahead and set up the data, and standardize all the variables as
+McElreath recommends. I'll also model the log weight instead of the raw weight
+so we can ensure that our predictions remain positive.
+
+```{r}
+data(foxes)
+f2 <-
+	foxes |>
+	dplyr::transmute(
+		A = area,
+		F = avgfood,
+		G = groupsize,
+		W = log(weight)
+	) |>
+	as.list() |>
+	lapply(FUN = rethinking::standardize)
+```
+
+Now we'll adopt a model for the weight. Since it is logged and standardized
+we'll use a Gaussian likelihood function. To set priors, we first need to
+determine our adjustment set. There are two causal paths between $A$ and $W$:
+
+1. $A \to F \to W$ and
+2. $A \to F \to G \to W$.
+
+If we want the total causal effect of $A$ on $W$, there are no closed paths
+and we do not need to adjust for any other variables. We can confirm this
+with `dagitty`.
+
+```{r}
+dagitty::adjustmentSets(
+	fox_dag,
+	exposure = "A",
+	outcome = "W",
+	effect = "total"
+)
+```
+
+We get the empty set as our minimal sufficient adjustment set. So we'll adopt
+the following model.
+
+$$
+\begin{align*}
+\mathrm{Scale}\left(\log W \right) &\sim N(\mu, \sigma) \\
+\mu &= \alpha + \beta \cdot \mathrm{Scale}(A)\\
+\alpha &\sim N(4.5, 0.5) \\
+\beta &\sim N(0, 0.25) \\
+\sigma &\sim \mathrm{Exp}(10)
+\end{align*}
+$$
+
+I tuned the parameters for the prior distributions using a prior predictive
+simulation to ensure that the prior predictions stay within the expected outcome
+space. As usual, I think that making this model have an intercept of zero
+potentially makes more sense (a fox with no area should starve) and then
+we would not expect this relationship to be linear, but we will just mess with
+the priors until the predictions look reasonable.
+
+```{r}
+set.seed(101)
+a <- rnorm(1000, 4.5, 0.5)
+b <- rnorm(1000, 0, 0.25)
+sigma <- rexp(1000, 10)
+
+plot(
+	NULL,
+	xlim = c(1, 5.25),
+	ylim = c(1.5, 7.5),
+	xlab = "Area",
+	ylab = "Weight",
+	main = "Prior predictive simulation"
+)
+
+x <- seq(min(f2$A), max(f2$A), length.out = 1000)
+xp <- x * attr(f2$A, "scaled:scale") + attr(f2$A, "scaled:center")
+out <- vector(length = 1000, mode = "list")
+for (i in 1:1000) {
+	# Sample y's from their distribution
+	y <- rnorm(1000, a[i] + b[i] * x, sigma[i])
+	
+	# Backtransform to original scale
+	yp <- exp(y * attr(f2$W, "scaled:scale") + attr(f2$W, "scaled:center"))
+	out[[i]] <- yp
+	
+	lines(x = xp, y = y, type = "l", col = rethinking::col.alpha("black", 0.05))
+}
+
+```
+
+I think that looks fine but I have to admit that I find assigning reasonable
+priors to standardized data quite difficult, it feels like just randomly
+picked numbers under the lines look ok. Now we can finally fit our
+regression and get the estimated causal effect.
+
+```{r}
+m_6h3 <- rethinking::quap(
+	flist = alist(
+		W ~ dnorm(mu, sigma),
+		mu <- a + b * A,
+		a ~ dnorm(4.5, 0.5),
+		b ~ dnorm(0, 0.25),
+		sigma ~ dexp(10)
+	),
+	data = f2
+)
+rethinking::precis(m_6h3)
+```
+
+Let's look at the posterior distribution of $\beta$.
+
+```{r}
+post <- extract.samples(m_6h3)
+dens(post$b, lwd = 2)
+abline(v = 0, lty = 2)
+```
+
+We can see that while the density of $\beta$ is more than 50% above zero, there
+is a substantial amount of the density on either side of zero. So in general,
+it seems that area size is not directly correlated to fox weight. If anything,
+there is a small positive effect, but it is not very strong. We can
+get predictions on the original scale as well.
+
+```{r}
+model_out <- rethinking::sim(m_6h3, data = list(A = x), n = 10000)
+model_mu <-
+	colMeans(model_out) |>
+	(\(x) x *attr(f2$W, "scaled:scale") + attr(f2$W, "scaled:center"))() |>
+	exp()
+
+model_pi <- apply(model_out, 2, \(x) exp(rethinking::PI(x) * 
+										attr(f2$W, "scaled:scale") + attr(f2$W, "scaled:center")))
+
+plot(
+	xp, model_mu,
+	type = "l",
+	xlim = range(xp),
+	ylim = range(foxes$weight),
+	xlab = "Simulated area",
+	ylab = "Counterfactual weight"
+)
+lines(xp, model_pi[1, ], lty = 2)
+lines(xp, model_pi[2, ], lty = 2)
+```
+
+As we would expect from the model estimates, there is a slight positive trend
+with incredibly wide credible intervals.
+
+## 6H4
+
+Next we want to infer the total causal effect of adding food. Since we want
+to know the *total* causal effect, we don't need to adjust for anything
+else in the model, since $G$ is a mediator on the causal path. This time I'll
+just use standard priors since it doesn't really matter that much.
+
+```{r}
+m_6h4 <- rethinking::quap(
+	flist = alist(
+		W ~ dnorm(mu, sigma),
+		mu <- a + b * `F`,
+		a ~ dnorm(0, 1),
+		b ~ dnorm(0, 1),
+		sigma ~ dexp(1)
+	),
+	data = f2
+)
+rethinking::precis(m_6h4)
+```
+
+OK, we see a similar thing here. There is a possibly a slight negative
+relationship, but it looks like there is really no relationship here.
+
+## 6H5
+
+Now we want to get the total causal effect of group size, $G$. Now we have
+to also control for food, $F$, because it is a confounder on one of the
+paths from $G \to W$.
+
+```{r}
+m_6h5 <- rethinking::quap(
+	flist = alist(
+		W ~ dnorm(mu, sigma),
+		mu <- a + bF * `F` + bG * G,
+		a ~ dnorm(0, 1),
+		bF ~ dnorm(0, 1),
+		bG ~ dnorm(0, 1),
+		sigma ~ dexp(1)
+	),
+	data = f2
+)
+rethinking::precis(m_6h5)
+```
+
+Ok, interestingly we can now see a strong positive effect of $F$ and a
+strong negative effect of $G$. If we plot the data stratified by group size, we
+can understand this effect a bit better. This is an example of a masked
+relationship. Overall, average food appears to have a negative effect on
+weight, which doesn't seem to make sense.
+
+However, for groups of a given size, the more food there is, the heavier
+those foxes tend to be. But for healthier (heavier) foxes, it is likely that
+more new foxes are born, and despite the fact that the foxes are in a more
+abundant area, there is less food per fox. So within a group size, having
+more food is good. But if the group size expands without a simultaneous
+increase in food supply, there will be less food available for each fox.
+However, note that for the high group sizes, only one group was observed
+in each. So perhaps our estimates contain selection bias, if the groups that
+were recorded are not typical examples of foxes with high group sizes.
+
+```{r}
+ggplot(foxes, aes(x = avgfood, y = weight, col = factor(groupsize))) +
+	geom_point(alpha = 0.5) +
+	geom_smooth(method = "lm", alpha = 0.5) +
+	zlib::theme_ms() +
+	geom_smooth(method = "lm", aes(group = 1, color = "overall")) +
+	scale_color_manual(
+		values = c(viridisLite::viridis(7), "black")
+	) +
+	labs(x = "Average food", y = "Weight", col = "Group size")
+```
+
+## 6H6 and 6H7
+
+I decided to skip the open research questions.
 
 
 <!-- END OF FILE -->
