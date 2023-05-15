@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.2.475">
+<meta name="generator" content="quarto-1.1.189">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>cp6</title>
+<title>Statistical Rethinking notes and exercises - 6&nbsp; The Haunted DAG and the Causal Terror</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -86,34 +86,213 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </style>
 
 
-<script src="cp6_files/libs/clipboard/clipboard.min.js"></script>
-<script src="cp6_files/libs/quarto-html/quarto.js"></script>
-<script src="cp6_files/libs/quarto-html/popper.min.js"></script>
-<script src="cp6_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="cp6_files/libs/quarto-html/anchor.min.js"></script>
-<link href="cp6_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="cp6_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="cp6_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="cp6_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="cp6_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./week1.html" rel="next">
+<link href="./cp5.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
 
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 </head>
 
-<body class="fullcontent">
+<body class="nav-sidebar floating">
 
-<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">The Haunted DAG and the Causal Terror</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Statistical Rethinking notes and exercises</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://wzbillings.com" title="" class="sidebar-tool px-1"><i class="bi bi-house-door-fill"></i></a>
+    <a href="https://fediscience.org/@wzbillings" title="" class="sidebar-tool px-1"><i class="bi bi-mastodon"></i></a>
+    <a href="https://github.com/wzbillings/SR-notes/" title="Source Code" class="sidebar-tool px-1"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle sidebar-tool" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+    </div>
+      </div>
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">Preface</a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">Textbook</a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp1.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">The Golem of Prague</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp2.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Small Worlds and Large Worlds</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp3.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling the Imaginary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp4.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Geocentric Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp5.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">The Many Variables and the Spurious Waffles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp6.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">The Haunted DAG and the Causal Terror</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">2023 Homework</a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./week1.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Week 1 Homework</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./week2.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Week 2 Homework</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./week3.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Week 3 Homework</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#chapter-notes" id="toc-chapter-notes" class="nav-link active" data-scroll-target="#chapter-notes"><span class="toc-section-number">6.1</span>  Chapter notes</a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="toc-section-number">6.2</span>  Exercises</a>
+  <ul class="collapse">
+  <li><a href="#e1" id="toc-e1" class="nav-link" data-scroll-target="#e1"><span class="toc-section-number">6.2.1</span>  6E1</a></li>
+  <li><a href="#e2" id="toc-e2" class="nav-link" data-scroll-target="#e2"><span class="toc-section-number">6.2.2</span>  6E2</a></li>
+  <li><a href="#e3" id="toc-e3" class="nav-link" data-scroll-target="#e3"><span class="toc-section-number">6.2.3</span>  6E3</a></li>
+  <li><a href="#e4" id="toc-e4" class="nav-link" data-scroll-target="#e4"><span class="toc-section-number">6.2.4</span>  6E4</a></li>
+  </ul></li>
+  <li><a href="#m1" id="toc-m1" class="nav-link" data-scroll-target="#m1"><span class="toc-section-number">6.3</span>  6M1</a></li>
+  <li><a href="#m2" id="toc-m2" class="nav-link" data-scroll-target="#m2"><span class="toc-section-number">6.4</span>  6M2</a></li>
+  <li><a href="#m3" id="toc-m3" class="nav-link" data-scroll-target="#m3"><span class="toc-section-number">6.5</span>  6M3</a></li>
+  <li><a href="#h1" id="toc-h1" class="nav-link" data-scroll-target="#h1"><span class="toc-section-number">6.6</span>  6H1</a>
+  <ul class="collapse">
+  <li><a href="#h2" id="toc-h2" class="nav-link" data-scroll-target="#h2"><span class="toc-section-number">6.6.1</span>  6H2</a></li>
+  </ul></li>
+  <li><a href="#h3" id="toc-h3" class="nav-link" data-scroll-target="#h3"><span class="toc-section-number">6.7</span>  6H3</a></li>
+  <li><a href="#h4" id="toc-h4" class="nav-link" data-scroll-target="#h4"><span class="toc-section-number">6.8</span>  6H4</a></li>
+  <li><a href="#h5" id="toc-h5" class="nav-link" data-scroll-target="#h5"><span class="toc-section-number">6.9</span>  6H5</a></li>
+  <li><a href="#h6-and-6h7" id="toc-h6-and-6h7" class="nav-link" data-scroll-target="#h6-and-6h7"><span class="toc-section-number">6.10</span>  6H6 and 6H7</a></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/wzbillings/SR-notes/issues/new" class="toc-action">Report an issue</a></p><p><a href="https://github.com/wzbillings/SR-notes/blob/main/cp6.qmd" class="toc-action">View source</a></p></div></div></nav>
+    </div>
+<!-- main -->
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">The Haunted DAG and the Causal Terror</span></h1>
+</div>
 
 
-<section id="the-haunted-dag-and-the-causal-terror" class="level1">
-<h1>The Haunted DAG and the Causal Terror</h1>
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
 <p>This chapter discusses three common pitfalls that can lead our statistical models to misbehave and make our causal interpretations difficult or incorrect. The three major topics are collider bias (selection-distortion), multicollinearity in regression models, and post-treatment bias. The chapter further expands on the idea of DAGs as graphical causal models that was introduced in the previous chapter.</p>
-<section id="chapter-notes" class="level2">
-<h2 class="anchored" data-anchor-id="chapter-notes">Chapter notes</h2>
+<section id="chapter-notes" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="chapter-notes"><span class="header-section-number">6.1</span> Chapter notes</h2>
 <ul>
 <li>The <strong>Selection-distortion effect</strong> (AKA Berkson’s bias, generalized to the idea of collider bias) occurs when the selection of a sample changes the relationship between the observed variables. (I.e. there is/isn’t a relationship between the two variables on the sample, but in the larger population, there isn’t/is a relationship.) Berkson’s bias refers to the particular effect that when selecting from a population on two desirable traits, there often appears to be a negative correlation between the desirable traits in the selected sample.</li>
 <li><strong>Multicollinearity</strong> refers to a very strong association between two or more predictor variables, conditional on the other variables in the model. When variables are multicollinear, the posterior distribution will seem to suggest that none of the multicollinear variables are truly associated with the outcome, even if the reality is that they are all strongly associated.</li>
@@ -132,18 +311,18 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>“Multiple regression is no oracle, but only a golem.”</li>
 </ul>
 </section>
-<section id="exercises" class="level2">
-<h2 class="anchored" data-anchor-id="exercises">Exercises</h2>
-<section id="e1" class="level3">
-<h3 class="anchored" data-anchor-id="e1">6E1</h3>
+<section id="exercises" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="exercises"><span class="header-section-number">6.2</span> Exercises</h2>
+<section id="e1" class="level3" data-number="6.2.1">
+<h3 data-number="6.2.1" class="anchored" data-anchor-id="e1"><span class="header-section-number">6.2.1</span> 6E1</h3>
 <p>Three mechanisms that can produce false inferences about causal effects in a multiple regression model are: multicollinearity, the selection- distortion effect, and post-treatment bias.</p>
 </section>
-<section id="e2" class="level3">
-<h3 class="anchored" data-anchor-id="e2">6E2</h3>
+<section id="e2" class="level3" data-number="6.2.2">
+<h3 data-number="6.2.2" class="anchored" data-anchor-id="e2"><span class="header-section-number">6.2.2</span> 6E2</h3>
 <p>For an example of post-treatment bias, consider a vaccine efficacy trial for influenza (or I guess any disease). Suppose we have a known surrogate of protection, an immunological measurement that is strongly associated with protection from the disease. For influenza, one potential biomarker is hemagglutinin inhibition (HI) titer, which is typically measured before and after (around 21 to 28 days) vaccination. If one did a challenge study or a long followup period of surveillance, we can record which individuals are ultimately infected with influenza. Including participants’ HI titers <em>before</em> vaccination when modeling vaccine protection is OK depending on the context, but including participants HI titer <em>after</em> vaccination would induce post-treatment bias, because vaccination directly affects HI titer.</p>
 </section>
-<section id="e3" class="level3">
-<h3 class="anchored" data-anchor-id="e3">6E3</h3>
+<section id="e3" class="level3" data-number="6.2.3">
+<h3 data-number="6.2.3" class="anchored" data-anchor-id="e3"><span class="header-section-number">6.2.3</span> 6E3</h3>
 <ol type="1">
 <li>The fork (<code>Z -&gt; X</code>; <code>Z -&gt; Y</code>): <code>X ⫫ Y | Z</code></li>
 <li>The pipe (<code>X -&gt; Z -&gt; Y</code>): <code>X ⫫ Y | Z</code></li>
@@ -151,14 +330,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>The descendent: conditional independencies are the same as the parent</li>
 </ol>
 </section>
-<section id="e4" class="level3">
-<h3 class="anchored" data-anchor-id="e4">6E4</h3>
+<section id="e4" class="level3" data-number="6.2.4">
+<h3 data-number="6.2.4" class="anchored" data-anchor-id="e4"><span class="header-section-number">6.2.4</span> 6E4</h3>
 <p>Suppose we have two variables (call one the exposure and the other the outcome) which are both causes of a third variable. If that third variable determines which observations we observe (for example, a restaurant existing or a patient agreeing to participate in a study), in our observed sample we will see a correlation between the exposure and the outcome, just because we are only seeing observations where the third variable is already specified.</p>
 <p>In the funded grants example, a funded grant must be high in at least one of newsworthiness or trustworthiness, otherwise it will not be funded. If we could see all grants, we would not see a correlation between newsworthiness and trustworthiness. But when we only look at funded grants, we condition on a common descendant of both variables (a collider), which makes a spurious relationship appear.</p>
 </section>
 </section>
-<section id="m1" class="level2">
-<h2 class="anchored" data-anchor-id="m1">6M1</h2>
+<section id="m1" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="m1"><span class="header-section-number">6.3</span> 6M1</h2>
 <p>The new DAG including <span class="math inline">\(V\)</span> as an unobserved common cause of <span class="math inline">\(C\)</span> and <span class="math inline">\(Y\)</span> looks like this.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>dag_6m1 <span class="ot">&lt;-</span> dagitty<span class="sc">::</span><span class="fu">dagitty</span>(</span>
@@ -215,8 +394,8 @@ $open
 </div>
 </div>
 </section>
-<section id="m2" class="level2">
-<h2 class="anchored" data-anchor-id="m2">6M2</h2>
+<section id="m2" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="m2"><span class="header-section-number">6.4</span> 6M2</h2>
 <p>First we’ll do the simulation: we want <span class="math inline">\(X\)</span> and <span class="math inline">\(Z\)</span> to be highly correlated.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">101</span>)</span>
@@ -254,8 +433,8 @@ Y 0.6779960 0.7998096 1.0000000</code></pre>
 </div>
 <p>Interestingly, we can see that we do not get the same problem as the previous multicollinearity example. The confidence intervals appear to be reasonable, and we see a strong effect of <span class="math inline">\(Z\)</span> but no effect of <span class="math inline">\(Y\)</span>. Intuitively, this make sense – <span class="math inline">\(Z\)</span> and <span class="math inline">\(Y\)</span> have a stronger correlation than <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, so after we control for <span class="math inline">\(Z\)</span>, the model “finds” all of the signal, and then does not find an effect of <span class="math inline">\(X\)</span>. So if we interpreted this model without considering the causal framework, we would still be mislead by the multicollinearity, but there is nothing obviously wrong – the entire causal effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Z\)</span> is through <span class="math inline">\(Z\)</span>, so this estimate of the direct causal effect of <span class="math inline">\(X\)</span> makes sense.</p>
 </section>
-<section id="m3" class="level2">
-<h2 class="anchored" data-anchor-id="m3">6M3</h2>
+<section id="m3" class="level2" data-number="6.5">
+<h2 data-number="6.5" class="anchored" data-anchor-id="m3"><span class="header-section-number">6.5</span> 6M3</h2>
 <p>Here are the adjustment sets for each of the DAGs shown.</p>
 <ul>
 <li>Top left DAG: <code>Z</code> only</li>
@@ -286,8 +465,8 @@ Y 0.6779960 0.7998096 1.0000000</code></pre>
 </div>
 </div>
 </section>
-<section id="h1" class="level2">
-<h2 class="anchored" data-anchor-id="h1">6H1</h2>
+<section id="h1" class="level2" data-number="6.6">
+<h2 data-number="6.6" class="anchored" data-anchor-id="h1"><span class="header-section-number">6.6</span> 6H1</h2>
 <p>Using the Waffle House data, we want to find the total causal influence of number of Waffle Houses on divorce rate. First, let’s look at what we have to work with.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"WaffleDivorce"</span>)</span>
@@ -395,8 +574,8 @@ sigma  0.92058385 0.09085178  0.77538516 1.0657825</code></pre>
 </div>
 </div>
 <p>So we see that we expect the divorce rate to increase by about <span class="math inline">\(10\%\)</span> for every 98 additional Waffle Houses, or approximately <span class="math inline">\(0.1\%\)</span> per Waffle House. This is the total causal effect based on our DAG, even though I would guess that the direct effect is zero and this entire effect is through location.</p>
-<section id="h2" class="level3">
-<h3 class="anchored" data-anchor-id="h2">6H2</h3>
+<section id="h2" class="level3" data-number="6.6.1">
+<h3 data-number="6.6.1" class="anchored" data-anchor-id="h2"><span class="header-section-number">6.6.1</span> 6H2</h3>
 <p>First, we need to check the implied causal independencies of the DAG.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>dagitty<span class="sc">::</span><span class="fu">impliedConditionalIndependencies</span>(dag_6h1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -500,8 +679,8 @@ D _||_ S | A, W  0.1349902 0.3622409 -0.1550991 0.4044034</code></pre>
 </div>
 </section>
 </section>
-<section id="h3" class="level2">
-<h2 class="anchored" data-anchor-id="h3">6H3</h2>
+<section id="h3" class="level2" data-number="6.7">
+<h2 data-number="6.7" class="anchored" data-anchor-id="h3"><span class="header-section-number">6.7</span> 6H3</h2>
 <p>Now we are back to the fox problems. I’ll reproduce the DAG first just so I have it in my notes.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>fox_dag <span class="ot">&lt;-</span></span>
@@ -651,8 +830,8 @@ sigma 0.96550793 0.06089243  0.868190063 1.0628258</code></pre>
 </div>
 <p>As we would expect from the model estimates, there is a slight positive trend with incredibly wide credible intervals.</p>
 </section>
-<section id="h4" class="level2">
-<h2 class="anchored" data-anchor-id="h4">6H4</h2>
+<section id="h4" class="level2" data-number="6.8">
+<h2 data-number="6.8" class="anchored" data-anchor-id="h4"><span class="header-section-number">6.8</span> 6H4</h2>
 <p>Next we want to infer the total causal effect of adding food. Since we want to know the <em>total</em> causal effect, we don’t need to adjust for anything else in the model, since <span class="math inline">\(G\)</span> is a mediator on the causal path. This time I’ll just use standard priors since it doesn’t really matter that much.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>m_6h4 <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
@@ -675,8 +854,8 @@ sigma  9.913351e-01 0.06467093  0.8879784 1.0946917</code></pre>
 </div>
 <p>OK, we see a similar thing here. There is a possibly a slight negative relationship, but it looks like there is really no relationship here.</p>
 </section>
-<section id="h5" class="level2">
-<h2 class="anchored" data-anchor-id="h5">6H5</h2>
+<section id="h5" class="level2" data-number="6.9">
+<h2 data-number="6.9" class="anchored" data-anchor-id="h5"><span class="header-section-number">6.9</span> 6H5</h2>
 <p>Now we want to get the total causal effect of group size, <span class="math inline">\(G\)</span>. Now we have to also control for food, <span class="math inline">\(F\)</span>, because it is a confounder on one of the paths from <span class="math inline">\(G \to W\)</span>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>m_6h5 <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
@@ -720,15 +899,15 @@ sigma  9.463559e-01 0.06178686  0.8476086  1.0451032</code></pre>
 </div>
 </div>
 </section>
-<section id="h6-and-6h7" class="level2">
-<h2 class="anchored" data-anchor-id="h6-and-6h7">6H6 and 6H7</h2>
+<section id="h6-and-6h7" class="level2" data-number="6.10">
+<h2 data-number="6.10" class="anchored" data-anchor-id="h6-and-6h7"><span class="header-section-number">6.10</span> 6H6 and 6H7</h2>
 <p>I decided to skip the open research questions.</p>
 <!-- END OF FILE -->
-</section>
+
+
 </section>
 
-</main>
-<!-- /main column -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -749,6 +928,119 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
   toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  let localAlternateSentinel = 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } 
   const icon = "";
   const anchorJS = new window.AnchorJS();
   anchorJS.options = {
@@ -770,24 +1062,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     button.classList.add('code-copy-button-checked');
     var currentTitle = button.getAttribute("title");
     button.setAttribute("title", "Copied!");
-    let tooltip;
-    if (window.bootstrap) {
-      button.setAttribute("data-bs-toggle", "tooltip");
-      button.setAttribute("data-bs-placement", "left");
-      button.setAttribute("data-bs-title", "Copied!");
-      tooltip = new bootstrap.Tooltip(button, 
-        { trigger: "manual", 
-          customClass: "code-copy-button-tooltip",
-          offset: [0, -8]});
-      tooltip.show();    
-    }
     setTimeout(function() {
-      if (tooltip) {
-        tooltip.hide();
-        button.removeAttribute("data-bs-title");
-        button.removeAttribute("data-bs-toggle");
-        button.removeAttribute("data-bs-placement");
-      }
       button.setAttribute("title", currentTitle);
       button.classList.remove('code-copy-button-checked');
     }, 1000);
@@ -823,45 +1098,39 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
-  const findCites = (el) => {
-    const parentEl = el.parentElement;
-    if (parentEl) {
-      const cites = parentEl.dataset.cites;
-      if (cites) {
-        return {
-          el,
-          cites: cites.split(' ')
-        };
-      } else {
-        return findCites(el.parentElement)
-      }
-    } else {
-      return undefined;
-    }
-  };
   var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
   for (var i=0; i<bibliorefs.length; i++) {
     const ref = bibliorefs[i];
-    const citeInfo = findCites(ref);
-    if (citeInfo) {
-      tippyHover(citeInfo.el, function() {
-        var popup = window.document.createElement('div');
-        citeInfo.cites.forEach(function(cite) {
-          var citeDiv = window.document.createElement('div');
-          citeDiv.classList.add('hanging-indent');
-          citeDiv.classList.add('csl-entry');
-          var biblioDiv = window.document.getElementById('ref-' + cite);
-          if (biblioDiv) {
-            citeDiv.innerHTML = biblioDiv.innerHTML;
-          }
-          popup.appendChild(citeDiv);
-        });
-        return popup.innerHTML;
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
       });
-    }
+      return popup.innerHTML;
+    });
   }
 });
 </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./cp5.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">The Many Variables and the Spurious Waffles</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./week1.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Week 1 Homework</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
 </div> <!-- /content -->
 
 
