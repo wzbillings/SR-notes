@@ -14,7 +14,7 @@ This chapter discusses three common pitfalls that can lead our statistical model
 
 ## Chapter notes
 
-* The **Selection-distortion effect** (AKA Berkson's bias, generalized to the idea of collider bias) occurs when the selection of a sample changes the relationship between the observed variables. (I.e. there is/isn't a relationship between the two variables on the sample, but in the larger population, there isn't/is a relationship.) Berkson's bias refers to the particular effect that when selecting from a population on two desirable traits, there often appears to be a negative correlation between the desirable traits in the selected sample.
+* The **Selection-distortion effect** (AKA Berkson's/Berksonian bias, generalized to the idea of collider bias) occurs when the selection of a sample changes the relationship between the observed variables. (I.e. there is/isn't a relationship between the two variables on the sample, but in the larger population, there isn't/is a relationship.) Berkson's bias refers to the particular effect that when selecting from a population on two desirable traits, there often appears to be a negative correlation between the desirable traits in the selected sample.
 * **Multicollinearity** refers to a very strong association between two or more predictor variables, conditional on the other variables in the model. When variables are multicollinear, the posterior distribution will seem to suggest that none of the multicollinear variables are truly associated with the outcome, even if the reality is that they are all strongly associated.
 * **Post-treatment bias**: a form of *included variable bias* where variables
 that are also causal descendents of the treatment, are controlled for when
