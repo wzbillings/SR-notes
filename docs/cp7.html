@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Statistical Rethinking notes and exercises - 8&nbsp; Week 1 Homework</title>
+<title>Statistical Rethinking notes and exercises - 7&nbsp; Ulysses’ Compass</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,40 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
@@ -64,8 +30,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./week2.html" rel="next">
-<link href="./cp7.html" rel="prev">
+<link href="./week1.html" rel="next">
+<link href="./cp6.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -112,7 +78,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./week1.html">2023 Homework</a></li><li class="breadcrumb-item"><a href="./week1.html"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Week 1 Homework</span></a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./cp1.html">Textbook</a></li><li class="breadcrumb-item"><a href="./cp7.html"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ulysses' Compass</span></a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
@@ -196,7 +162,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./cp7.html" class="sidebar-item-text sidebar-link">
+  <a href="./cp7.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ulysses’ Compass</span></span></a>
   </div>
 </li>
@@ -213,7 +179,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./week1.html" class="sidebar-item-text sidebar-link active">
+  <a href="./week1.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Week 1 Homework</span></span></a>
   </div>
 </li>
@@ -243,14 +209,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#chapter-notes" id="toc-chapter-notes" class="nav-link active" data-scroll-target="#chapter-notes"><span class="header-section-number">7.1</span> Chapter notes</a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">7.2</span> Exercises</a>
+  <ul class="collapse">
+  <li><a href="#e1" id="toc-e1" class="nav-link" data-scroll-target="#e1"><span class="header-section-number">7.2.1</span> 7E1</a></li>
+  <li><a href="#e2" id="toc-e2" class="nav-link" data-scroll-target="#e2"><span class="header-section-number">7.2.2</span> 7E2</a></li>
+  <li><a href="#e3" id="toc-e3" class="nav-link" data-scroll-target="#e3"><span class="header-section-number">7.2.3</span> 7E3</a></li>
+  <li><a href="#e4" id="toc-e4" class="nav-link" data-scroll-target="#e4"><span class="header-section-number">7.2.4</span> 7E4</a></li>
+  <li><a href="#m1" id="toc-m1" class="nav-link" data-scroll-target="#m1"><span class="header-section-number">7.2.5</span> 7M1</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/wzbillings/SR-notes/issues/new" class="toc-action">Report an issue</a></p><p><a href="https://github.com/wzbillings/SR-notes/blob/main/cp7.qmd" class="toc-action">View source</a></p></div></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Week 1 Homework</span></h1>
+<h1 class="title"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ulysses’ Compass</span></h1>
 </div>
 
 
@@ -265,134 +245,83 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>This homework covers the material from Lectures 1 and 2, and the content from book Chapters 1, 2, and 3. The questions are reproduced almost identically from <a href="https://github.com/rmcelreath/stat_rethinking_2023/blob/main/homework/week01.pdfhttps://github.com/rmcelreath/stat_rethinking_2023/blob/main/homework/week02.pdf">Richard McElreath’s original assignment</a>, I did not write them. I only wrote these solutions. As of 2023-01-17, I believe my solutions are consistent with the now-released official solutions by McElreath and I do not intend to edit these further.</p>
-<div class="callout callout-style-simple callout-note no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><strong>1.</strong> Suppose the globe tossing data (Lecture 2, Chapter 2) had turned out to be 4 water and 11 land. Construct the posterior distribution.</p>
-</div>
-</div>
-</div>
-<p>Fortunately, I already did a very similar problem in the textbook, so I used the function that I already wrote. This assumes a uniform prior distribution for <span class="math inline">\(p\)</span>.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>globe_post <span class="ot">&lt;-</span> <span class="cf">function</span>(w, l) {</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Define the grid of points to evaluate</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    p_grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">1</span>, <span class="at">by =</span> <span class="fl">0.01</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Uniform prior on p: f(x) = 1 / (1 - 0) = 1 for all p</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    prior <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, <span class="at">times =</span> <span class="fu">length</span>(p_grid))</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compute the likelihood over the grid given the observed sample</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    likelihood <span class="ot">&lt;-</span> <span class="fu">dbinom</span>(w, <span class="at">size =</span> w <span class="sc">+</span> l, <span class="at">prob =</span> p_grid)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compute the unstandardized posterior</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    unstd.posterior <span class="ot">&lt;-</span> likelihood <span class="sc">*</span> prior</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Standardize the posterior</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    posterior <span class="ot">&lt;-</span> unstd.posterior <span class="sc">/</span> <span class="fu">sum</span>(unstd.posterior)</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Make the plot</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot</span>(p_grid, posterior, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">xlab =</span> <span class="st">"P(water)"</span>,</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">ylab =</span> <span class="st">"Posterior probability"</span>)</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mtext</span>(<span class="fu">paste</span>(<span class="fu">length</span>(p_grid), <span class="st">"points:"</span>, w, <span class="st">"W,"</span>, l, <span class="st">"L"</span>))</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Invisibly return posterior density estimate</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">invisible</span>(posterior)</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the posterior after assuming there are 4 water observations and</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co"># 11 land observations</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>post <span class="ot">&lt;-</span> <span class="fu">globe_post</span>(<span class="at">w =</span> <span class="dv">4</span>, <span class="at">l =</span> <span class="dv">11</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="week1_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><strong>2.</strong> Using the posterior distribution from <strong>1</strong>, compute the posterior predictive distribution for the next 5 tosses of the same globe. I recommend you use the sampling method.</p>
-</div>
-</div>
-</div>
-<p>First we construct a set of 10000 samples from the posterior distribution. We sample from the same grid of <span class="math inline">\(p\)</span> values that we used to calculate the posterior distribution, weighting the likelihood of each value by the calculated posterior density.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>samples <span class="ot">&lt;-</span> <span class="fu">sample</span>(</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">1</span>, <span class="at">by =</span> <span class="fl">0.01</span>),</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">1e5</span>,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">prob =</span> post,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">replace =</span> <span class="cn">TRUE</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Next we compute the posterior predictive distribution. We draw from the likelihood function (with <span class="math inline">\(n = 5\)</span> to represent the next five samples) using the sampled values of <span class="math inline">\(p\)</span>.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>post_pred <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="dv">10000</span>, <span class="at">size =</span> <span class="dv">5</span>, <span class="at">prob =</span> samples)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">simplehist</span>(post_pred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="week1_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<div class="callout callout-style-simple callout-note no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><strong>3.</strong> Use the posterior predictive distribution from <strong>2</strong> to calculate the probability of 3 or more water samples in the next 5 tosses.</p>
-</div>
-</div>
-</div>
-<p>Now that we have the samples from the posterior predictive distribution, this probability is simple to approximate.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(post_pred <span class="sc">&gt;=</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.1805</code></pre>
-</div>
-</div>
-<p>The probability of three or more water samples in the next 5 tosses is approximately <span class="math inline">\(18.28\%\)</span>, based on our posterior predictive distribution.</p>
-<div class="callout callout-style-simple callout-note no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><strong>4.</strong> Suppose you observe <span class="math inline">\(W = 5\)</span> water points, but you forgot to write down how many times the globe was tossed, so you don’t know the number of land points, <span class="math inline">\(L\)</span>. Assume that <span class="math inline">\(p = 0.7\)</span> and compute the posterior distribution of the number of tosses <span class="math inline">\(N\)</span>.</p>
-</div>
-</div>
-</div>
-<p>If we assume that <span class="math inline">\(p = 0.5\)</span> and we observe <span class="math inline">\(W = 5\)</span> water points, then the likelihood as a function of <span class="math inline">\(N\)</span> (unknown) is</p>
-<p><span class="math display">\[P(N) = \left( N\atop{5} \right) 5^{0.7} (N-5)^{0.3}.\]</span></p>
-<p>We need to choose a prior for <span class="math inline">\(N\)</span> in order to calculate the posterior distribution. We haven’t discussed many different distributions for priors yet, but I’ll choose a Poisson prior because it has the set <span class="math inline">\(\{0, 1, \ldots, \infty\}\)</span> as its support, so there is no upper limit on <span class="math inline">\(N\)</span> that we have to choose. The Poisson distribution has one parameter, called <span class="math inline">\(\lambda\)</span>, I’ll choose to be <span class="math inline">\(5\)</span> for no other reason than that is the number of throws we know we observed. It would also make sense to choose a uniform prior with some very large upper boundary, say <span class="math inline">\(\mathrm{Uniform}(5, 100)\)</span>. (Or even smaller than that, because we can probably place a relatively small upper bound on the number of times we threw the ball, since we know <span class="math inline">\(p = 0.7\)</span>.)</p>
-<p>Other than changing the prior, we calculate this the same way. Since it’s impossible for us to evaluate every <span class="math inline">\(N\)</span> up to <span class="math inline">\(\infty\)</span>, I’ll just calculate up to 25 and that should be plenty.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the grid of points to evaluate</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>n_grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">25</span>, <span class="at">by =</span> <span class="dv">1</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Poisson prior on n</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>prior <span class="ot">&lt;-</span> <span class="fu">dpois</span>(n_grid, <span class="at">lambda =</span> <span class="dv">5</span>)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the likelihood over the grid given the observed sample</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>likelihood <span class="ot">&lt;-</span> <span class="fu">dbinom</span>(<span class="dv">5</span>, <span class="at">size =</span> n_grid, <span class="at">prob =</span> <span class="fl">0.7</span>)</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the unstandardized posterior</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>unstd.posterior <span class="ot">&lt;-</span> likelihood <span class="sc">*</span> prior</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardize the posterior</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>posterior <span class="ot">&lt;-</span> unstd.posterior <span class="sc">/</span> <span class="fu">sum</span>(unstd.posterior)</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Make the plot</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(n_grid, posterior, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">xlab =</span> <span class="st">"Number of samples (N)"</span>,</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">ylab =</span> <span class="st">"Posterior probability"</span>)</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(n_grid, prior, <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="week1_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>In this figure, the points are the observed posterior probabilities. The solid line just connects them to give us a better idea of the shape of the distribution. The dashed line shows the Poisson prior on <span class="math inline">\(N\)</span>.</p>
-<p>As we can see in the posterior, <strong>it is impossible that we drew less than 5</strong> <strong>samples</strong>. That’s good, that means that our model reflects reality, which is a good sanity check for our golem. Given that <span class="math inline">\(p = 0.7\)</span> however, it is actually quite plausible that we only tossed the globe 5 times, which could explain why we didn’t write down the number of tosses or the number of land throws – there weren’t any.</p>
-<p>However, the MAP estimate would be that we threw the globe 6 times, with 7 times in a close second place. As we get to 10 or higher, it becomes incredibly unlikely that we would throw the ball this many times and <em>only</em> observe 5 water tosses.</p>
+<p>Predictive accuracy is the main focus of this chapter. The titular metaphor “Ulysses’ compass” refers to the mythological hero Ulysses navigating the path between the two monsters Charybdis and Scylla, who each lived on either side of a narrow strait. Sailors attempting to avoid Charybdis would sail too close to Scylla, and vice versa. McElreath likens this to the scientist navigating between underfitting and overfitting. Major topics of this chapter include out-of-sample predictive accuracy estimation via LOOCV, PSIS, and WAIC; regularizing priors; and the prediction/inference trade-off.</p>
+<section id="chapter-notes" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="chapter-notes"><span class="header-section-number">7.1</span> Chapter notes</h2>
+<ul>
+<li>When we think about Copernicus and the heliocentric model, we have to remember that the geocentric model makes very good predictions, despite being wrong. Models that are completely causally wrong can make great predictions.</li>
+<li>The principle of parsimony is often used to distinguish between models which make good predictions, but even this is not always useful for us in science.</li>
+<li><span class="math inline">\(R^2\)</span> is a commonly used method for choosing the “best” regression model, but even this is not correct. In general, overfitting and underfitting are both dangerous and we must be wary of methods which can lead us to overfit. The notion of overfitting and underfitting is related to the bias-variance tradeoff.</li>
+<li>To construct useful measures in a Bayesian framework, we need to consider the entropy of our models – that is, how much is our uncertainty reduced if we learn an outcome? The information entropy is the function <span class="math display">\[h(p) = -\sum_{i=1}^n p_i \cdot \log(p_i).\]</span></li>
+<li>We can relate the entropy of the model to the accuracy of our predictions using the <strong>Kullback-Leibler divergence</strong>: the additional uncertainty induced by using probabilities from one distribution to describe another. The divergence is given by <span class="math display">\[D_{KL}(p, q) = \sum_i p_i \log \left( \frac{p_i}{q_i}\right).\]</span></li>
+<li>Using the divergence, or the related deviance, we cannot estimate how close a model is to the truth. However, we can tell which of a set of models is closest to the truth, and how much better it is from the others.</li>
+<li>We estimate the deviance as <span class="math inline">\(-2 \times \texttt{lppd}\)</span> where <span class="math inline">\(\texttt{lppd}\)</span> is the <em>log pointwise predictive density</em>. The formula is omitted here but is on page 210 of the book.</li>
+<li>Importantly, we cannot simply score models on the data used to fit the models, because this leads to overfitting.</li>
+<li>We can often use regularizing priors, which are skeptical and try to prevent the model from taking on extreme values, to improve our out-of-sample performance.</li>
+<li>The traditional way to approximate out-of-sample error is by using Cross-Validation, specifically Leave-One-Out CV (LOOCV).</li>
+<li>Since LOOCV is computationally very expensive, we want to approximate it. One method is called Pareto-smoothed importance sampling (PSIS), and another is called the Widely Applicable Information Criterion (WAIC). See the text, section 7.4 for details on both methods.</li>
+<li>As a sidenote, this chapter discusses robust regression using a <span class="math inline">\(t\)</span> likelihood instead of a Gaussian likelihood on page 233.</li>
+<li>I really enjoyed the metaphor that “if we search hard enough, we are bound to found a Curse of Tippicanoe” – if we torture the data enough, it will confess.</li>
+</ul>
+</section>
+<section id="exercises" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="exercises"><span class="header-section-number">7.2</span> Exercises</h2>
+<section id="e1" class="level3" data-number="7.2.1">
+<h3 data-number="7.2.1" class="anchored" data-anchor-id="e1"><span class="header-section-number">7.2.1</span> 7E1</h3>
+<p>The three motivating criteria which define information entropy are</p>
+<ol type="1">
+<li>Entropy should be a continuous-valued function;</li>
+<li>As the size of the sample space increases, entropy should increase for events that are equally likely; and</li>
+<li>If the entropy associated with the event <span class="math inline">\(E_1\)</span> is <span class="math inline">\(h_1\)</span> and the entropy associated with the event <span class="math inline">\(E_2\)</span> is <span class="math inline">\(h_2\)</span>, then the entropy associated with the event <span class="math inline">\(E_1 \cup E_2\)</span> should be <span class="math inline">\(h_1 + h_2\)</span>.</li>
+</ol>
+</section>
+<section id="e2" class="level3" data-number="7.2.2">
+<h3 data-number="7.2.2" class="anchored" data-anchor-id="e2"><span class="header-section-number">7.2.2</span> 7E2</h3>
+<p>If a coin is weighted such that when the coin is flipped, the probability of heads is <span class="math inline">\(70\%\)</span> is given by <span class="math display">\[h = -\left( 0.7 \cdot \log(0.7) + 0.3 \cdot \log(0.3) \right) \approx 0.61,\]</span> because the only other possibility is that the coin lands on tails, which occurs with probability <span class="math inline">\(0.3\)</span>.</p>
+</section>
+<section id="e3" class="level3" data-number="7.2.3">
+<h3 data-number="7.2.3" class="anchored" data-anchor-id="e3"><span class="header-section-number">7.2.3</span> 7E3</h3>
+<p>Suppose that a four-sided die is weighted so that each possible outcome occurs with the frequency given in the following table.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th><em>roll</em></th>
+<th><em>p</em></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>0.20</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>0.25</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>0.25</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>0.30</td>
+</tr>
+</tbody>
+</table>
+<p>The entropy is then <span class="math display">\[h = -\sum_{i = 1}^4 p_i \cdot \log p_i \approx 1.38.\]</span></p>
+</section>
+<section id="e4" class="level3" data-number="7.2.4">
+<h3 data-number="7.2.4" class="anchored" data-anchor-id="e4"><span class="header-section-number">7.2.4</span> 7E4</h3>
+<p>Suppose we have another 4-sided die when the sides 1, 2, and 3 occur equally often but the side 4 never occurs. If <span class="math inline">\(X\)</span> is the random variable representing the result of the die roll, we calculate the entropy over the support of <span class="math inline">\(X\)</span>, which is <span class="math inline">\(S(X) = \{1, 2, 3\}\)</span> and we leave the value of 4 out of the calculation entirely. The entropy is then</p>
+<p><span class="math display">\[h = -3\left( \frac{1}{3}\cdot\log\frac{1}{3}\right) \approx 1.10.\]</span></p>
+</section>
+<section id="m1" class="level3" data-number="7.2.5">
+<h3 data-number="7.2.5" class="anchored" data-anchor-id="m1"><span class="header-section-number">7.2.5</span> 7M1</h3>
 <!-- END OF FILE -->
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -745,13 +674,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./cp7.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ulysses’ Compass</span></span>
+      <a href="./cp6.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">The Haunted DAG and the Causal Terror</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./week2.html" class="pagination-link">
-        <span class="nav-page-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Week 2 Homework</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./week1.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Week 1 Homework</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
@@ -759,4 +688,4 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/wzbillings/SR-notes/issues/new" class="toc-action">Report an issue</a></p><p><a href="https://github.com/wzbillings/SR-notes/blob/main/week1.qmd" class="toc-action">View source</a></p></div></div></div></div></footer></body></html>
+</body></html>

@@ -10,15 +10,105 @@ library(rethinking)
 
 # Ulysses' Compass
 
-
+Predictive accuracy is the main focus of this chapter. The titular metaphor
+"Ulysses' compass" refers to the mythological hero Ulysses navigating the
+path between the two monsters Charybdis and Scylla, who each lived on
+either side of a narrow strait. Sailors attempting to avoid Charybdis would
+sail too close to Scylla, and vice versa. McElreath likens this to the scientist
+navigating between underfitting and overfitting. Major topics of this chapter
+include out-of-sample predictive accuracy estimation via LOOCV, PSIS, and WAIC;
+regularizing priors; and the prediction/inference trade-off.
 
 ## Chapter notes
 
-
+* When we think about Copernicus and the heliocentric model, we have to remember
+that the geocentric model makes very good predictions, despite being wrong.
+Models that are completely causally wrong can make great predictions.
+* The principle of parsimony is often used to distinguish between models which
+make good predictions, but even this is not always useful for us in science.
+* $R^2$ is a commonly used method for choosing the "best" regression model,
+but even this is not correct. In general, overfitting and underfitting are
+both dangerous and we must be wary of methods which can lead us to overfit.
+The notion of overfitting and underfitting is related to the bias-variance
+tradeoff.
+* To construct useful measures in a Bayesian framework, we need to consider the
+entropy of our models -- that is, how much is our uncertainty reduced if we
+learn an outcome? The information entropy is the function
+$$h(p) = -\sum_{i=1}^n p_i \cdot \log(p_i).$$
+* We can relate the entropy of the model to the accuracy of our predictions
+using the **Kullback-Leibler divergence**: the additional uncertainty induced by
+using probabilities from one distribution to describe another. The divergence
+is given by
+$$D_{KL}(p, q) = \sum_i p_i \log \left( \frac{p_i}{q_i}\right).$$
+* Using the divergence, or the related deviance,
+we cannot estimate how close a model is to the truth. However, we can tell
+which of a set of models is closest to the truth, and how much better it is from
+the others.
+* We estimate the deviance as $-2 \times \texttt{lppd}$ where $\texttt{lppd}$ is
+the *log pointwise predictive density*. The formula is omitted here but is on
+page 210 of the book.
+* Importantly, we cannot simply score models on the data used to fit the models,
+because this leads to overfitting.
+* We can often use regularizing priors, which are skeptical and try to prevent
+the model from taking on extreme values, to improve our out-of-sample performance.
+* The traditional way to approximate out-of-sample error is by using
+Cross-Validation, specifically Leave-One-Out CV (LOOCV).
+* Since LOOCV is computationally very expensive, we want to approximate it. One
+method is called Pareto-smoothed importance sampling (PSIS), and another is
+called the Widely Applicable Information Criterion (WAIC). See the text, section
+7.4 for details on both methods.
+* As a sidenote, this chapter discusses robust regression using a $t$ likelihood
+instead of a Gaussian likelihood on page 233.
+* I really enjoyed the metaphor that "if we search hard enough, we are bound
+to found a Curse of Tippicanoe" -- if we torture the data enough, it will
+confess.
 
 ## Exercises
 
+### 7E1
 
+The three motivating criteria which define information entropy are
 
+1. Entropy should be a continuous-valued function;
+1. As the size of the sample space increases, entropy should increase for
+events that are equally likely; and
+1. If the entropy associated with the event $E_1$ is $h_1$ and the entropy
+associated with the event $E_2$ is $h_2$, then the entropy associated with the
+event $E_1 \cup E_2$ should be $h_1 + h_2$.
+
+### 7E2
+
+If a coin is weighted such that when the coin is flipped, the probability of
+heads is $70\%$ is given by
+$$h = -\left( 0.7 \cdot \log(0.7) + 0.3 \cdot \log(0.3) \right) \approx 0.61,$$
+because the only other possibility is that the coin lands on tails, which occurs
+with probability $0.3$.
+
+### 7E3
+
+Suppose that a four-sided die is weighted so that each possible outcome occurs
+with the frequency given in the following table.
+
+| _roll_ | _p_  |
+|--------|------|
+| 1      | 0.20 |
+| 2      | 0.25 |
+| 3      | 0.25 |
+| 4      | 0.30 |
+
+The entropy is then
+$$h = -\sum_{i = 1}^4 p_i \cdot \log p_i \approx 1.38.$$
+
+### 7E4
+
+Suppose we have another 4-sided die when the sides 1, 2, and 3 occur equally
+often but the side 4 never occurs. If $X$ is the random variable representing
+the result of the die roll, we calculate the entropy over the support of $X$,
+which is $S(X) = \{1, 2, 3\}$ and we leave the value of 4 out of the calculation
+entirely. The entropy is then
+
+$$h = -3\left( \frac{1}{3}\cdot\log\frac{1}{3}\right) \approx 1.10.$$
+
+### 7M1
 
 <!-- END OF FILE -->
