@@ -192,6 +192,12 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#e3" id="toc-e3" class="nav-link" data-scroll-target="#e3"><span class="header-section-number">7.2.3</span> 7E3</a></li>
   <li><a href="#e4" id="toc-e4" class="nav-link" data-scroll-target="#e4"><span class="header-section-number">7.2.4</span> 7E4</a></li>
   <li><a href="#m1" id="toc-m1" class="nav-link" data-scroll-target="#m1"><span class="header-section-number">7.2.5</span> 7M1</a></li>
+  <li><a href="#m2" id="toc-m2" class="nav-link" data-scroll-target="#m2"><span class="header-section-number">7.2.6</span> 7M2</a></li>
+  <li><a href="#m3" id="toc-m3" class="nav-link" data-scroll-target="#m3"><span class="header-section-number">7.2.7</span> 7M3</a></li>
+  <li><a href="#m4" id="toc-m4" class="nav-link" data-scroll-target="#m4"><span class="header-section-number">7.2.8</span> 7M4</a></li>
+  <li><a href="#m5" id="toc-m5" class="nav-link" data-scroll-target="#m5"><span class="header-section-number">7.2.9</span> 7M5</a></li>
+  <li><a href="#m6" id="toc-m6" class="nav-link" data-scroll-target="#m6"><span class="header-section-number">7.2.10</span> 7M6</a></li>
+  <li><a href="#h1" id="toc-h1" class="nav-link" data-scroll-target="#h1"><span class="header-section-number">7.2.11</span> 7H1</a></li>
   </ul></li>
   </ul>
 <div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/wzbillings/SR-notes/issues/new" class="toc-action">Report an issue</a></p><p><a href="https://github.com/wzbillings/SR-notes/blob/main/cp7.qmd" class="toc-action">View source</a></p></div></div></nav>
@@ -288,6 +294,33 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="m1" class="level3" data-number="7.2.5">
 <h3 data-number="7.2.5" class="anchored" data-anchor-id="m1"><span class="header-section-number">7.2.5</span> 7M1</h3>
+<p>The definition of the AIC is <span class="math display">\[\mathrm{AIC} = -2(\mathrm{lppd} - p),\]</span> while the definition of the WAIC is <span class="math display">\[\mathrm{WAIC} = -2 \left(\mathrm{lppd} - \sum_i \mathrm{var}_{\theta}\left( \log p(y_i\mid\theta)\right)\right).\]</span></p>
+<p>Both of these formulas involve comparing the lppd to some penalty term, which is more general for the WAIC than for the AIC. In order for the AIC to be similar to the WAIC, we need to make assumptions which lead to the equivalence <span class="math display">\[ p = \sum_i \mathrm{var}_{\theta}\left( \log p(y_i\mid\theta)\right), \]</span> on average.</p>
+<p>According to the text, this will occur if we assume that the priors are flat (or are overwhelmed by the likelihood), the posterior distribution is approximately multivariate Gaussian, and the sample size is much greater than the number of parameters. So for models with complicated, hierarchical likelihoods, which are common in actual research questions, the AIC will likely not be a good approximation to the WAIC, and unfortunately the AIC gives us no diagnostic criteria to determine when it fails.</p>
+</section>
+<section id="m2" class="level3" data-number="7.2.6">
+<h3 data-number="7.2.6" class="anchored" data-anchor-id="m2"><span class="header-section-number">7.2.6</span> 7M2</h3>
+<p>Model <em>selection</em> concerns selecting one model out of a group and discarding the others. Typically one would use the remaining model to make inferences or predictions. However, model <em>comparison</em> involves investigating the differences between multiple models, including comparing the criterion values and comparing the estimates and predictions. When we choose to do selection rather than comparison, we lose all of the information encoded in the differences between the model – knowing which differences in models change criterion values and estimates is crucial information which can inform our understanding of the system.</p>
+</section>
+<section id="m3" class="level3" data-number="7.2.7">
+<h3 data-number="7.2.7" class="anchored" data-anchor-id="m3"><span class="header-section-number">7.2.7</span> 7M3</h3>
+<p>We need to fit models to the exact same set of data points in order to compare them based on WAIC because changing the data points will change the WAIC even if nothing about the model changes. If we were to use the same number of data points, but different sets of data, the WAIC will fluctuate based on properties of the data, and we could get different results when we compare the same models.</p>
+<p>The penalty parameter of the WAIC also depends on the value of <span class="math inline">\(N\)</span>, the number of data points. If we were to drop data points (for example, due to missing data in some models, but not others), we would expect the WAIC to increase (become worse) because we have less information relative to the complexity of the models. Conversely, if we increased the number of data points the WAIC could be better just because of that. We could then make an incorrect decision by comparing the WAICs from models fit on different data.</p>
+</section>
+<section id="m4" class="level3" data-number="7.2.8">
+<h3 data-number="7.2.8" class="anchored" data-anchor-id="m4"><span class="header-section-number">7.2.8</span> 7M4</h3>
+<p>As the width of the priors decreases (i.e.&nbsp;the priors become more concentrated), the WAIC penalty term shrinks. The WAIC penalty term is based on the variances of individual probability estimates across samples. As the width of a prior is narrowed, the model will tend to produce samples for each individual that are closer together on average and thus the penalty term will decrease. However, since the <code>lppd</code> also changes when we change the priors we cannot say for sure whether this increases or decreases the overall WAIC.</p>
+</section>
+<section id="m5" class="level3" data-number="7.2.9">
+<h3 data-number="7.2.9" class="anchored" data-anchor-id="m5"><span class="header-section-number">7.2.9</span> 7M5</h3>
+<p>When we use informative priors, we make the model more skeptical of extreme values in the data, and less trustworthy of values that would pull the model away from the priors. The data thus need to contain a large amount of evidence to make extreme values more likely in the posterior distribution. Under these conditions, the model is “excited” less by the training sample – and thus, the model fitting process is more robust to variations in the training sample due to sample error. Ideally, the model will capture less of the noise in the data while still capturing strong underlying trends, improving the performance of the model at explaining novel data from the same data generating process.</p>
+</section>
+<section id="m6" class="level3" data-number="7.2.10">
+<h3 data-number="7.2.10" class="anchored" data-anchor-id="m6"><span class="header-section-number">7.2.10</span> 7M6</h3>
+<p>Overly informative priors, or in the worst case, degenerate priors, will dominate the model and prevent the model from learning from the data. If a prior is too narrow, the data cannot provide enough evidence to move the model away from the priors. Such a model is so skeptical of the data that it does not pick up the noise from sampling variability in the data, nor does it pick up any signal from the underlying trends either. Because the model has learned nothing from the data, we could make predictions just as good by making up random numbers.</p>
+</section>
+<section id="h1" class="level3" data-number="7.2.11">
+<h3 data-number="7.2.11" class="anchored" data-anchor-id="h1"><span class="header-section-number">7.2.11</span> 7H1</h3>
 <!-- END OF FILE -->
 
 

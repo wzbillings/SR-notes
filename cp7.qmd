@@ -111,4 +111,93 @@ $$h = -3\left( \frac{1}{3}\cdot\log\frac{1}{3}\right) \approx 1.10.$$
 
 ### 7M1
 
+The definition of the AIC is
+$$\mathrm{AIC} = -2(\mathrm{lppd} - p),$$
+while the definition of the WAIC is
+$$\mathrm{WAIC} = -2 \left(\mathrm{lppd} - \sum_i \mathrm{var}_{\theta}\left( \log p(y_i\mid\theta)\right)\right).$$
+
+Both of these formulas involve comparing the lppd to some penalty term,
+which is more general for the WAIC than for the AIC. In order for the AIC
+to be similar to the WAIC, we need to make assumptions which lead to
+the equivalence
+$$ p = \sum_i \mathrm{var}_{\theta}\left( \log p(y_i\mid\theta)\right), $$
+on average.
+
+According to the text, this will occur if we assume that the
+priors are flat (or are overwhelmed by the likelihood), the posterior
+distribution is approximately multivariate Gaussian, and the sample size
+is much greater than the number of parameters. So for models with
+complicated, hierarchical likelihoods, which are common in actual research
+questions, the AIC will likely not be a good approximation to the WAIC,
+and unfortunately the AIC gives us no diagnostic criteria to determine when
+it fails.
+
+### 7M2
+
+Model *selection* concerns selecting one model out of a group and
+discarding the others. Typically one would use the remaining model to make
+inferences or predictions. However, model *comparison* involves investigating
+the differences between multiple models, including comparing the criterion
+values and comparing the estimates and predictions. When we choose to do
+selection rather than comparison, we lose all of the information encoded
+in the differences between the model -- knowing which differences in models
+change criterion values and estimates is crucial information which can inform
+our understanding of the system.
+
+### 7M3
+
+We need to fit models to the exact same set of data points in order to compare
+them based on WAIC because changing the data points will change the WAIC even
+if nothing about the model changes. If we were to use the same number of data
+points, but different sets of data, the WAIC will fluctuate based on properties
+of the data, and we could get different results when we compare the same
+models.
+
+The penalty parameter of the WAIC also depends on the value of $N$, the number
+of data points. If we were to drop data points (for example, due to missing
+data in some models, but not others), we would expect the WAIC to increase
+(become worse)
+because we have less information relative to the complexity of the models.
+Conversely, if we increased the number of data points the WAIC could be
+better just because of that. We could then make an incorrect decision by
+comparing the WAICs from models fit on different data.
+
+### 7M4
+
+As the width of the priors decreases (i.e. the priors become more concentrated), the WAIC penalty term shrinks. The WAIC penalty term is based
+on the variances of individual probability estimates across samples. As the
+width of a prior is narrowed, the model will tend to produce samples for
+each individual that are closer together on average and thus the penalty term
+will decrease. However, since the `lppd` also changes when we change the
+priors we cannot say for sure whether this increases or decreases the overall
+WAIC.
+
+### 7M5
+
+When we use informative priors, we make the model more skeptical of extreme
+values in the data, and less trustworthy of values that would pull the model
+away from the priors. The data thus need to contain a large amount of evidence
+to make extreme values more likely in the posterior distribution. Under these
+conditions, the model is "excited" less by the training sample -- and thus,
+the model fitting process is more robust to variations in the training sample
+due to sample error. Ideally, the model will capture less of the noise in the
+data while still capturing strong underlying trends, improving the performance
+of the model at explaining novel data from the same data generating process.
+
+### 7M6
+
+Overly informative priors, or in the worst case, degenerate priors, will
+dominate the model and prevent the model from learning from the data. If
+a prior is too narrow, the data cannot provide enough evidence to move the
+model away from the priors. Such a model is so skeptical of the data that it
+does not pick up the noise from sampling variability in the data, nor does it
+pick up any signal from the underlying trends either. Because the model has
+learned nothing from the data, we could make predictions just as good by
+making up random numbers.
+
+### 7H1
+
+
+
+
 <!-- END OF FILE -->
