@@ -4,11 +4,62 @@ editor_options:
   chunk_output_type: console
 ---
 
+# Ulysses' Compass
+
 ```{r setup, include = FALSE}
 library(rethinking)
-```
 
-# Ulysses' Compass
+# The plot method for compare results doesn't seem to work unless you paste
+# and run this code explicitly, from the file where the compare function is
+# defined in the rethinking pkg.
+setMethod("plot" , "compareIC" , function(x,y,xlim,SE=TRUE,dSE=TRUE,weights=FALSE,...) {
+	dev_in <- x[[1]] - x[[5]]*2 # criterion - penalty2
+	dev_out <- x[[1]]
+	if ( !is.null(x[['SE']]) ) devSE <- x[['SE']]
+	dev_out_lower <- dev_out - devSE
+	dev_out_upper <- dev_out + devSE
+	if ( weights==TRUE ) {
+		dev_in <- ICweights(dev_in)
+		dev_out <- ICweights(dev_out)
+		dev_out_lower <- ICweights(dev_out_lower)
+		dev_out_upper <- ICweights(dev_out_upper)
+	}
+	n <- length(dev_in)
+	if ( missing(xlim) ) {
+		xlim <- c(min(dev_in),max(dev_out))
+		if ( SE==TRUE & !is.null(x[['SE']]) ) {
+			xlim[1] <- min(dev_in,dev_out_lower)
+			xlim[2] <- max(dev_out_upper)
+		}
+	}
+	main <- colnames(x)[1]
+	set_nice_margins()
+	dotchart( dev_in[n:1] , labels=rownames(x)[n:1] , xlab="deviance" , pch=16 , xlim=xlim , ... )
+	points( dev_out[n:1] , 1:n )
+	mtext(main)
+	# standard errors
+	if ( !is.null(x[['SE']]) & SE==TRUE ) {
+		for ( i in 1:n ) {
+			lines( c(dev_out_lower[i],dev_out_upper[i]) , rep(n+1-i,2) , lwd=0.75 )
+		}
+	}
+	if ( !all(is.na(x@dSE)) & dSE==TRUE ) {
+		# plot differences and stderr of differences
+		dcol <- col.alpha("black",0.5)
+		abline( v=dev_out[1] , lwd=0.5 , col=dcol )
+		diff_dev_lower <- dev_out - x$dSE
+		diff_dev_upper <- dev_out + x$dSE
+		if ( weights==TRUE ) {
+			diff_dev_lower <- ICweights(diff_dev_lower)
+			diff_dev_upper <- ICweights(diff_dev_upper)
+		}
+		for ( i in 2:n ) {
+			points( dev_out[i] , n+2-i-0.5 , cex=0.5 , pch=2 , col=dcol )
+			lines( c(diff_dev_lower[i],diff_dev_upper[i]) , rep(n+2-i-0.5,2) , lwd=0.5 , col=dcol )
+		}
+	}
+})
+```
 
 Predictive accuracy is the main focus of this chapter. The titular metaphor
 "Ulysses' compass" refers to the mythological hero Ulysses navigating the
@@ -197,7 +248,507 @@ making up random numbers.
 
 ### 7H1
 
+For this exercise, we want to fit a curve to the `Laffer` data. First let's
+load and plot the data. Note that I've gone ahead and standardized the
+independent variable, tax rate.
 
+```{r}
+data(Laffer)
+d <- list(
+	x = standardize(Laffer$tax_rate),
+	y = Laffer$tax_revenue
+)
 
+plot(
+	d,
+	xlab = "Standardized tax rate",
+	ylab = "Tax revenue"
+)
+```
+
+For this exercise, I'll fit three models to the data: a regular linear model, a
+quadratic polynomial model, and a cubic polynomial model. For a real research
+question, I would also probably consider a spline model, but that is too much
+work for no payoff here. I messed around for a bit and tried to get a model like
+the curve from the image in the book, but that is laughably wrong and impossible
+to fit, so it didn't work out.
+
+```{r}
+set.seed(123123)
+m1 <- rethinking::quap(
+	alist(
+		y ~ dnorm(mu, sigma),
+		mu <- b0 + b1 * x,
+		b0 ~ dnorm(0, 2),
+		b1 ~ dnorm(0, 2),
+		sigma ~ dexp(0.5)
+	),
+	data = d
+)
+m2 <- rethinking::quap(
+	alist(
+		y ~ dnorm(mu, sigma),
+		mu <- b0 + b1 * x + b2 * I(x ^ 2),
+		b0 ~ dnorm(0, 2),
+		b1 ~ dnorm(0, 2),
+		b2 ~ dnorm(0, 2),
+		sigma ~ dexp(0.5)
+	),
+	data = d
+)
+m3 <- rethinking::quap(
+	alist(
+		y ~ dnorm(mu, sigma),
+		mu <- b0 + b1 * x + b2 * I(x ^ 2) + b3 * I(x ^ 3),
+		b0 ~ dnorm(0, 2),
+		b1 ~ dnorm(0, 2),
+		b2 ~ dnorm(0, 2),
+		b3 ~ dnorm(0, 2),
+		sigma ~ dexp(0.5)
+	),
+	data = d
+)
+```
+
+The first thing we probably want to do is plot the predictions of these
+models.
+
+```{r}
+x_m <- attr(d$x, "scaled:center")
+x_s <- attr(d$x, "scaled:scale")
+x_vec <- list(x = seq(min(d$x), max(d$x), length.out = 500))
+x_tf <- x_vec$x * x_s + x_m
+
+plot(
+	x = d$x * x_s + x_m,
+	y = d$y,
+	xlab = "Tax rate",
+	ylab = "Tax revenue"
+)
+
+m1_post <- rethinking::link(m1, data = x_vec) |> colMeans()
+lines(
+	x = x_tf, y = m1_post,
+	lty = 1, col = "black",
+	lwd = 2
+)
+
+m2_post <- rethinking::link(m2, data = x_vec) |> colMeans()
+lines(
+	x = x_tf, y = m2_post,
+	lty = 2, col = "blue",
+	lwd = 2
+)
+
+m3_post <- rethinking::link(m3, data = x_vec) |> colMeans()
+lines(
+	x = x_tf, y = m3_post,
+	lty = 3, col = "red",
+	lwd = 2
+)
+
+legend(
+	x = "topleft",
+	legend = c("Linear", "Quadratic", "Cubic"),
+	col = c("black", "blue", "red"),
+	lty = c(1, 2, 3),
+	lwd = c(2, 2, 2)
+)
+```
+
+OK, so we can first of all see that none of those models are even anywhere
+close to what that editorial showed. None of them really get pulled towards
+the point with the high tax revenue, but we'll check that better in the
+next question. The next thing that we need to do is compare the models. First
+let's check the WAIC.
+
+```{r}
+rethinking::compare(m1, m2, m3)
+```
+
+All of the models appear to perform about the same. So even though the linear
+model had technically the lowest WAIC, it's probably preferable to use that
+model since the gains in performance are smaller than the standard errors of
+the WAIC estimates. Let's check PSIS as well.
+
+```{r}
+rethinking::compare(m1, m2, m3, func = "PSIS")
+```
+
+We'll address the issues with the high Pareto $k$ values in the next question.
+For now we can see that model 1, the linear model, has the lowest PSIS, although
+again we can see that the standard errors are much higher than the differences
+in performance. But since we have few data points, adopting the simpler model
+will likely be a better choice and it seems that there is some linear
+relationship between tax revenue and tax rate. Let's look at the model summary
+for `m1`.
+
+```{r}
+summary(m1)
+```
+
+We see that, on average, we would expect for a 1 standard deviation increase
+in the tax rate, we would expect the tax revenue to increase by 1 unit, whatever
+those units are (I didn't look them up). Almost all of the probability mass
+is above zero, so even if the quantitative effect value is somewhat larger
+or stronger, we can be reasonably confident that increasing the tax rate will
+increase the tax revenue by some amount.
+
+### 7H2
+
+This question tells us that there is an outlier, but based on the previous
+Pareto $k$ values that I already glanced at (not all listed out here), that
+seems to be correct. Point #12 is identified as incredibly influential in all
+three models (along with point 1 for the quadratic model, giving us another
+reason to trust that model less than the linear model regardless of what the
+WAIC tells us). Because of the outlier, we'll refit the linear model using
+a Student's $t$ regression and see what happens.
+
+```{r}
+m4 <- rethinking::quap(
+	alist(
+		y ~ dstudent(2, mu, sigma),
+		mu <- b0 + b1 * x,
+		b0 ~ dnorm(0, 2),
+		b1 ~ dnorm(0, 2),
+		sigma ~ dexp(0.5)
+	),
+	data = d
+)
+
+plot(
+	x = d$x * x_s + x_m,
+	y = d$y,
+	xlab = "Tax rate",
+	ylab = "Tax revenue"
+)
+
+m4_post <- rethinking::link(m4, data = x_vec) |> colMeans()
+lines(
+	x = x_tf, y = m1_post,
+	lty = 1, col = "black",
+	lwd = 2
+)
+lines(
+	x = x_tf, y = m4_post,
+	lty = 2, col = "firebrick3",
+	lwd = 2
+)
+legend(
+	x = "topleft",
+	legend = c("Gaussian", "T(2 d.f.)"),
+	lwd = c(2, 2),
+	lty = c(1, 2),
+	col = c("black", "firebrick3")
+)
+```
+
+Interestingly, we can see that if we use a Student's $t$ likelihood which is
+less susceptible to the influence of outliers, the line is flatter, reflecting
+the fact that the outlier was dragging the slope upwards. Excluding this
+outlier, which has an unusually high tax revenue compared to its tax rate,
+gives us a line that matches the rest of the points better.
+
+Of course, this change is not too dramatic. Let's look at the summary.
+
+```{r}
+summary(m4)
+```
+
+The change in the coefficient is within the standard error of that coefficient
+from the first model, so as long as we don't fall victim to pointeffectism (
+AKA point-estimate-is-the-effect syndrome), this doesn't change our conclusions
+really at all. This is because while that point is an outlier, it is not
+incredibly influential. I.e., in standard frequentist linear regression theory,
+the leverage of that point would not be exceptionally high, indicating that it
+does not have that much power to influence the coefficient estimates on its
+own. An outlier with a more extreme $x$ value would influence the estimates
+more.
+
+### 7H3
+
+The first thing we need to do for this problem is type in the data.
+
+```{r}
+birds <- matrix(
+	c(0.2, 0.8, 0.05, 0.2, 0.1, 0.15, 0.2, 0.05, 0.7, 0.2, 0.025, 0.05,
+		0.2, 0.025, 0.05),
+	ncol = 5,
+	nrow = 3,
+	dimnames = list(
+		paste("Island", 1:3),
+		paste("Species", LETTERS[1:5])
+	)
+)
+birds
+```
+
+Next, we want to compute the entropy of each island's bird distribution.
+
+```{r}
+h <- apply(birds, 1, \(p) -sum(p * log(p)))
+round(h, 2)
+```
+
+Island 1 has the highest entropy, followed by Island 3, and finally Island 2.
+This is because Island 1 has an even distribution of birds, which gives us
+the maximum possible entropy of an island with five bird species. We can
+think of this intuitively as a measurement of our uncertainty in which type of
+bird we will see. If we see a random bird on Island 1, there is an equally
+likely chance for it to be any of the species, so any guess we make should
+be quite uncertain.
+
+However, on Island 2 one scecies represents 80\% of birds on the island,
+and similar on Island 3, one species represents 70\% of birds on the island.
+So if we saw a random bird on Island 3, we could make a decent guess about the
+species, and an even stronger guess on Island 2. So the decreasing entropies
+reflect our lowered uncertainty about the type of bird we guess we might see.
+
+Next we want to compute the KL divergence between each pair of islands.
+
+```{r}
+kl <- function(p, q) {return(sum(p * (log(p) - log(q))))}
+
+pairs <-
+	tidyr::expand_grid(p = 1:3, q = 1:3) |>
+	dplyr::filter(p != q) |>
+	dplyr::mutate(
+		div = purrr::map2_dbl(p, q, \(x, y) kl(birds[x, ], birds[y, ]))
+	)
+
+pairs
+```
+
+These are the KL divergence values if we used the distribution of island $p$
+to predict the distribution of island $q$. We see that it's very difficult
+to predict island 2 from island 3 and vice versa. Predictions using Island 1
+are always much better, regardless of the direction. However, it is much easier
+to predict Island 3 from Island 1 and vice versa, then trying to predict Island
+1 using Island 2 (or vice versa). This is because Island 1 has the maximum
+entropy, so reflects the maximum amount of uncertainty in our predictions --
+therefore using Island 1 is the safest way to make a prediction in any other
+island, because we are expressing the highest amount of uncertainty that we
+can in this situation.
+
+Island 3 and 1 are more compatible in predictions than
+Island 2 and 1 because the difference in entropy between Islands 1 and 3 is
+smaller than between Islands 1 and 2. Islands 2 and 3 are almost completely
+dominated by 2 bird species each, but the dominant species are different
+between the islands, so using one to predict the other is very wrong. That is,
+we are using one distribution with extreme values to predict another
+distribution with different extreme values, so our predictions are more wrong
+on average.
+
+### 7H4
+
+OK, the first thing we need to do is type in all that code from the book
+to recreate the models, so I'll do that without comments.
+
+```{r}
+d <- sim_happiness(seed = 1977, N_years = 1000)
+d2 <- d[d$age > 17, ]
+d2$A <- (d2$age - 18) / (65 - 18)
+d2$mid <- d2$married + 1
+
+m6.9 <- quap(
+	alist(
+		happiness ~ dnorm(mu, sigma),
+		mu <- a[mid] + bA * A,
+		a[mid] ~ dnorm(0, 1),
+		bA ~ dnorm(0, 2),
+		sigma ~ dexp(1)
+	),
+	data = d2
+)
+
+m6.10 <- quap(
+	alist(
+		happiness ~ dnorm(mu, sigma),
+		mu <- a + bA * A,
+		a ~ dnorm(0, 1),
+		bA ~ dnorm(0, 2),
+		sigma ~ dexp(1)
+	),
+	data = d2
+)
+```
+
+Since McElreath says that WAIC and PSIS produce identical results here, we'll
+go ahead and use WAIC since it's like one second faster.
+
+```{r}
+rethinking::compare(m6.9, m6.10)
+```
+
+We can see that the WAIC for m6.9 is much lower than the WAIC for m6.10, even
+if we consider the magnitude of the standard errors -- the WAICs are multiple
+standard errors apart, so m6.9 should do a better job at generating predictions
+than m6.10. Let's look at the model parameters.
+
+```{r}
+precis(m6.9, depth = 2)
+precis(m6.10)
+```
+
+Of course, we know from the previous chapter than `m6.9` is **conditioning
+on a collider**! And `m6.10` produces the correct causal inference. However,
+we have to remember the crucial fact that **colliders and confounders contain
+information**. As McElreath says earlier in this chapter, "highly confounded
+models can still make good predictions, at least in the short term." So
+the model that makes the wrong causal conclusion has better predictive accuracy
+than the correct model, but this should not surprise us too much -- this is
+why building a causal model is so important.
+
+### 7H5
+
+For this exercise, we'll go back to the foxes data. We have five models
+that we need to fit, using the fox weight as the outcome. I'll go ahead and
+fit those models in the order indicated in the question. I did the same data
+processing as in the previous chapter, taking the log of the outcome and then
+standardizing all of the variables.
+
+```{r}
+set.seed(987865)
+data(foxes)
+f2 <-
+	foxes |>
+	dplyr::transmute(
+		A = area,
+		F = avgfood,
+		G = groupsize,
+		W = log(weight)
+	) |>
+	as.list() |>
+	lapply(FUN = rethinking::standardize)
+
+mf.1 <- rethinking::quap(
+	alist(
+		W ~ dnorm(mu, sigma),
+		mu <- b0 + bF * F + bG * G + bA * A,
+		b0 ~ dnorm(0, 2),
+		bF ~ dnorm(0, 2),
+		bG ~ dnorm(0, 2),
+		bA ~ dnorm(0, 2),
+		sigma ~ dexp(1)
+	),
+	data = f2
+)
+
+mf.2 <- rethinking::quap(
+	alist(
+		W ~ dnorm(mu, sigma),
+		mu <- b0 + bF * F + bG * G,
+		b0 ~ dnorm(0, 2),
+		bF ~ dnorm(0, 2),
+		bG ~ dnorm(0, 2),
+		sigma ~ dexp(1)
+	),
+	data = f2
+)
+
+mf.3 <- rethinking::quap(
+	alist(
+		W ~ dnorm(mu, sigma),
+		mu <- b0 + bG * G + bA * A,
+		b0 ~ dnorm(0, 2),
+		bG ~ dnorm(0, 2),
+		bA ~ dnorm(0, 2),
+		sigma ~ dexp(1)
+	),
+	data = f2
+)
+
+mf.4 <- rethinking::quap(
+	alist(
+		W ~ dnorm(mu, sigma),
+		mu <- b0 + bF * F,
+		b0 ~ dnorm(0, 2),
+		bF ~ dnorm(0, 2),
+		sigma ~ dexp(1)
+	),
+	data = f2
+)
+
+mf.5 <- rethinking::quap(
+	alist(
+		W ~ dnorm(mu, sigma),
+		mu <- b0 + bA * A,
+		b0 ~ dnorm(0, 2),
+		bA ~ dnorm(0, 2),
+		sigma ~ dexp(1)
+	),
+	data = f2
+)
+
+rethinking::compare(mf.1, mf.2, mf.3, mf.4, mf.5)
+```
+
+Ok, so the main thing that I can see is that Model 1, 2, and 3 are all similar,
+and model 4 and 5 are similar. But following McElreath's notion to exam
+the standard error of the differences, we can see that all the models
+are actually not too different. However, we can see that model 1 and model 3
+are quite similar, whereas the others have larger standard errors.
+
+If we look at the plot we can definitely see two groups of models.
+
+```{r}
+plot(rethinking::compare(mf.1, mf.2, mf.3, mf.4, mf.5))
+```
+
+If we look back at the DAG, maybe we can understand why there are two groups
+of models.
+
+```{r}
+fox_dag <-
+	dagitty::dagitty(
+		"dag {
+		A -> F -> G -> W
+		F -> W
+		}"
+	)
+dagitty::coordinates(fox_dag) <-
+	list(
+		x = c(A = 2, F = 1, G = 3, W = 2),
+		y = c(A = 1, F = 2, G = 2, W = 3)
+	)
+plot(fox_dag)
+```
+
+So the groups that are similar are:
+1. (avgfood, groupsize, area) and (avgfood, groupsize) and (groupsize, area);
+2. (avgfood only) and (area only).
+
+So the main difference between the models is the inclusion of the `groupsize`
+variable, $G$ in the DAG. We can see that $G$ is a mediator of the relatioship
+between $F$ and $W$ here.
+
+When we fit only `avgfood` or only `area`, it makes sense that the two models
+are the same -- the effect of `area` is entirely through its effect on
+`avgfood`, so those two models are essentially finding the same effect.
+
+However, when we include the mediator we get slightly different results.
+Interestingly, we're still only capturing one causal effect, because the
+effect of everything else comes from `area`. But it seems that the predictive
+model is better when we control for `groupsize` -- why would this be, if we
+are still only capturing descendants of `area`? I think that this is because,
+as we also know, conditioning on a variable which is the ancestor of the 
+outcome can lead to
+increased precision in our estimates. So even though we aren't getting any
+"new" signal here, and all of the models with `groupsize` in them perform
+similarly, we get slightly more efficient estimates, which can increase
+our predictive accuracy on average. It may also be the case that estimating
+the effect of the `groupsize` is a statistical issue -- this variable is
+integer valued, and we're modeling it like a continuous value, but because
+we only have a discrete set of actual observations, this may reduce the
+precision of our estimate, since there's a lot of "space" in the groupsize-axis
+that isn't covered by any measurements.
+
+We can also see that model 3 had the best WAIC overall, and it specifically
+includes the two variables which are direct ancestors of the treatment,
+so maybe that supports my idea or maybe it is a coincidence, I'm not too sure.
+
+Anyways, I think this is mostly a statistical phenomenon. There are no
+confounders or colliders here, everything is just direct or indirect effects
+of the effect of area on weight.
 
 <!-- END OF FILE -->
