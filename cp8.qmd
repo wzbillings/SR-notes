@@ -1,0 +1,242 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Conditional Manatees
+
+```{r setup, include = TRUE}
+library(rethinking)
+```
+
+This chapter is a brief introduction to the concept of conditional inference,
+focusing on the specific concept of linear interaction in models.
+
+## Chapter notes
+
+* Bullet holes in bombers and propeller scars on manatees -- both are
+*conditional on survival*. This is the motivating example for the chapter.
+* An *interaction* is a statistical method for modeling interdependence
+between two features of a model.
+* Using an interaction term in a model is nearly always better than fitting
+stratified models.
+* In Bayesian models, it's better to use an index-coding approach and have
+parameters vary by the level of a categorical variable, rather than using
+an indicator-coding approach, which makes assigning priors difficult.
+* An *interaction* is also just a slope which is conditional on another
+effect -- the value of one variable modifies the effect of the other.
+* Linear interactions are symmetrical. If variable $x$ interacts with
+variable $y$, then $y$ interacts with $x$. "There is just no way to specify
+a simple, linear interaction in which you can say the effect of some
+variable $x$ depends on $z$, but the effect of $z$ does not depend upon $x$."
+* Continuous interactions are harder to think about as conditional slopes,
+because we would need an uncountably infinite number of categories. Instead,
+we can think about interactions as nested linear models.
+
+$$
+\begin{aligned}
+\mu_i &= \alpha + \gamma_{W,i}W_i + \beta_S S_i \\
+\gamma_{W,i} &= \beta_{W} + \beta_{WS} S_i
+\end{aligned}
+$$
+
+* We could include nested terms for both variables, but the resultant
+model has unidentifiable parameters -- in the final term below, only the
+sum $(\beta_{WS} + \beta_{SW})$ can be estimated.
+
+$$
+\begin{aligned}
+\mu_i &= \alpha + \gamma_{W,i}W_i + \gamma_{S,i} S_i \\
+\gamma_{W,i} &= \beta_{W} + \beta_{WS} S_i \\
+\gamma_{S_i} &= \beta_{S} + \beta_{SW} W_i \\
+\therefore \mu_i &= \alpha + \left(\beta_{W} + \beta_{WS} S_i\right)W_i + \left(\beta_{S} + \beta_{SW} W_i\right) S_i \\
+&= \alpha + \beta_W W_i + \beta_S S_i + (\beta_{WS} + \beta_{SW}) W_iS_i
+\end{aligned}
+$$
+
+* The best way to understand interactions is to plot the predictions at multiple
+levels of the interacting variables.
+
+## Exercises
+
+### 8E1
+
+(1) Bread dough rises because of yeast and temperature. Yeast amount and
+temperature interact to determine how much the bread dough rises.
+(2) Education and parents' education could interact to determine higher
+income. While people with more education have higher salaries on average,
+people who are educated and also have educated parents are likely to have
+even higher average salaries at the same level of individual education.
+(3) Gasoline and pressing the accelerator make the car go. If you never press
+the accelerator, a full tank won't do anything.
+
+### 8E2
+
+Only statement one (Caramelizing onions requires cooking over a low heat and
+making sure the onions don't dry out) involves an interaction. Both things
+must be true simultaneously, whereas the effects are independent of each
+other in the other statements.
+
+### 8E3
+
+Of course all of these models only make sense if we have a correct way to
+quantify those variables.
+
+(1) $\text{onion caramelization} = \alpha + \beta_1 \cdot \text{temperature} + \beta_2 \cdot \text{moisture} + \gamma_{12} \cdot \text{temperature} \cdot \text{moisture}$
+(2) $\text{car speed} = \alpha + \beta_2 \cdot \text{number of cylinders} + \beta_2 \cdot \text{fuel injector quality}$
+(3) $\text{political beliefs} = \alpha + \beta_1 \cdot \text{parental beliefs} + \beta_2 \cdot \text{friend beliefs}$
+(4) $\text{intelligence} = \alpha + \beta_1 \cdot \text{sociality} + \beta_2 \cdot \text{manipulable appendages}.$
+
+### 8M1
+
+In the tulips example, we saw that water and shade levels interact to affect
+tulip blooms. Tulips need both water and shade to produce blooms; at a low-light
+level, the effect of water decreases because no amount of water can replace
+the lost light. Similarly, if plants have no water, an adequate amount of
+sunlight will not produce blooms and might even become harmful.
+
+If the hot temperature prevents blooms all together, then the hot temperature
+would modify the effect of shade, water, and their interaction to all become
+zero -- no amount of shade or water can allow for blooms, and their interaction
+does not help in this context either.
+
+### 8M2
+
+The linear model for the tulips example without heat was
+$$
+\mu_i = \alpha + \beta_W W_i + \beta_S S_i + \gamma_{SW} S_iW_i.
+$$
+
+We can make all of those terms dependent on $H_i$, the heat treatment, in order
+to accomplish this.
+
+$$
+\mu_i = \alpha_{H[i]} + \beta^{W}_{H[i]} + \beta^S_{H[i]} + \gamma^{SW}_{H[i]} S_iW_i.
+$$
+
+Now it is possible for these effects to all be zero (or much smaller)
+if $H[i] = 1$, and have
+their normal values if $H[i] = 0$. Another way to write this model could
+be something like
+$$
+\begin{aligned}
+\mu_i &= \lambda_i (1 - H_i) \\
+\lambda_i &= \alpha + \beta_W W_i + \beta_S S_i + \gamma_{SW} S_iW_i
+\end{aligned}
+$$
+where $H_i$ again takes on values of $0$ (cold) and $1$ (hot).
+
+### 8M3
+
+We cannot create a data set where the raven population and wolf population
+have a linear statistical interaction, because a linear statistical
+interaction has at least two predictors. Here we only have an outcome
+(the raven population size) and a predictor (the wolf population size). This is
+more of an example of a differential equations type problem than a statistical
+interaction. In this model, the raven population size would have to vary
+with the wolf population size, and we do not know about the functional
+form of this effect, so an appropriate model would be something like
+
+$$
+\frac{dR}{dt} = f\left(W(t)\right),
+$$
+where $f$ is a function that takes the wolf population size at time $t$ as an
+input, and returns the change in the raven population before the next
+time point.
+
+### 8M4
+
+We'll use the sample model for the tulip blooms without heat from the
+[earlier exercise](###8M2). The priors used in the chapter were
+
+$$
+\begin{aligned}
+\alpha &\sim \text{Normal}(0.5, 0.25) \\
+\beta_W &\sim \text{Normal}(0, 0.25) \\
+\beta_S &\sim \text{Normal}(0, 0.25) \\
+\gamma_{SW} &\sim \text{Normal}(0, 0.25) \\
+\end{aligned}
+$$
+
+We want to use new priors that constrain the effect of water to be positive and
+the effect of shade to be negative. At this point in the book, the
+distribution we learned about that has to be positive is lognormal, and
+we can force the effect of shade to be negative by taking the additive inverse
+of a lognormal prior. Since we know that having more water increases the effect
+of light (because if a tulip has plenty of water, getting enough sunshine is
+the new limiting factor on the blooms), we know that having more water should
+decrease the effect of shade, so we'll make the interaction negative as well.
+Lognormal priors can be hard to calibrate, so we'll adjust the parameters
+until the prior predictive simulation looks nice. The priors we'll use are
+as follows.
+
+$$
+\begin{aligned}
+\mu_i &= \alpha + \beta_W W_i - \beta_S S_i - \gamma_{SW} S_iW_i \\
+\alpha &\sim \text{Normal}(0.5, 0.25) \\
+\beta_W &\sim \text{Log-normal}(-3, 1) \\
+\beta_S &\sim \text{Log-normal}(-3, 1) \\
+\gamma_{SW} &\sim \text{Log-normal}(-3, 1)
+\end{aligned}
+$$
+
+```{r}
+set.seed(370)
+
+# Load the data
+data(tulips)
+d <- tulips
+d$blooms_std <- d$blooms / max(d$blooms)
+d$water_cent <- d$water - mean(d$water)
+d$shade_cent <- d$shade - mean(d$shade)
+
+# Fit the model and extract the prior samples
+m_8m4 <- rethinking::quap(
+	alist(
+		blooms_std ~ dnorm(mu, sigma),
+		mu <- a + bw * water_cent - bs * shade_cent - bws * water_cent * shade_cent,
+		a ~ dnorm(0.5, 0.25),
+		bw  ~ dlnorm(-3, 1),
+		bs  ~ dlnorm(-3, 1),
+		bws ~ dlnorm(-3, 1),
+		sigma ~ dexp(1)
+	),
+	data = d
+)
+
+prior <- rethinking::extract.prior(m_8m4)
+
+# Plot the prpd
+par(mfrow = c(1, 3))
+for (s in -1:1) {
+	idx <- which(d$shade_cent == s)
+	plot(
+		d$water_cent[idx],
+		d$blooms_std[idx],
+		xlim = c(-1, 1),
+		ylim = c(-0.5, 1.5),
+		xlab = "water",
+		ylab = "blooms",
+		pch = 16,
+		col = rethinking::rangi2
+	)
+	abline(h = 0, lty = 2)
+	abline(h = 1, lty = 2)
+	mtext(paste0("shade = ", s))
+	mu <- rethinking::link(
+		m_8m4,
+		data = data.frame(shade_cent = s, water_cent = -1:1),
+		post = prior
+	)
+	for (i in 1:20) lines(-1:1, mu[i, ], col = col.alpha("black", 0.3))
+}
+```
+
+I did a few different simulations and ultimately ended up with the prior
+simulation shown here. The slope priors are regularizing and skeptical,
+so we think that a smaller effect is more likely *a priori* -- if the effects
+are large, the data can demonstrate that for us.
+
+
+<!-- END OF FILE -->
