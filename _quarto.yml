@@ -3,7 +3,7 @@ project:
   output-dir: docs
 
 execute: 
-  freeze: auto
+  freeze: true
 
 book:
   title: "Statistical Rethinking notes and exercises"
@@ -31,6 +31,7 @@ book:
         - cp5.qmd
         - cp6.qmd
         - cp7.qmd
+        - cp8.qmd
     # - part: "2023 Homework"
     #   chapters:
     #     - week1.qmd

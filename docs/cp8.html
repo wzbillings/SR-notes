@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.510">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Statistical Rethinking notes and exercises - 8&nbsp; Conditional Manatees</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./references.html" rel="next">
+<link href="./cp7.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./cp1.html">Textbook</a></li><li class="breadcrumb-item"><a href="./cp8.html"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Conditional Manatees</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Statistical Rethinking notes and exercises</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://wzbillings.com" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-house-door-fill"></i></a>
+    <a href="https://fediscience.org/@wzbillings" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-mastodon"></i></a>
+    <a href="https://github.com/wzbillings/SR-notes/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text">Textbook</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">The Golem of Prague</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Small Worlds and Large Worlds</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling the Imaginary</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Geocentric Models</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp5.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">The Many Variables and the Spurious Waffles</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp6.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">The Haunted DAG and the Causal Terror</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp7.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ulysses’ Compass</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cp8.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Conditional Manatees</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#chapter-notes" id="toc-chapter-notes" class="nav-link active" data-scroll-target="#chapter-notes"><span class="header-section-number">8.1</span> Chapter notes</a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">8.2</span> Exercises</a>
+  <ul class="collapse">
+  <li><a href="#e1" id="toc-e1" class="nav-link" data-scroll-target="#e1"><span class="header-section-number">8.2.1</span> 8E1</a></li>
+  <li><a href="#e2" id="toc-e2" class="nav-link" data-scroll-target="#e2"><span class="header-section-number">8.2.2</span> 8E2</a></li>
+  <li><a href="#e3" id="toc-e3" class="nav-link" data-scroll-target="#e3"><span class="header-section-number">8.2.3</span> 8E3</a></li>
+  <li><a href="#m1" id="toc-m1" class="nav-link" data-scroll-target="#m1"><span class="header-section-number">8.2.4</span> 8M1</a></li>
+  <li><a href="#m2" id="toc-m2" class="nav-link" data-scroll-target="#m2"><span class="header-section-number">8.2.5</span> 8M2</a></li>
+  <li><a href="#m3" id="toc-m3" class="nav-link" data-scroll-target="#m3"><span class="header-section-number">8.2.6</span> 8M3</a></li>
+  <li><a href="#m4" id="toc-m4" class="nav-link" data-scroll-target="#m4"><span class="header-section-number">8.2.7</span> 8M4</a></li>
+  <li><a href="#h1" id="toc-h1" class="nav-link" data-scroll-target="#h1"><span class="header-section-number">8.2.8</span> 8H1</a></li>
+  <li><a href="#h2" id="toc-h2" class="nav-link" data-scroll-target="#h2"><span class="header-section-number">8.2.9</span> 8H2</a></li>
+  <li><a href="#h3" id="toc-h3" class="nav-link" data-scroll-target="#h3"><span class="header-section-number">8.2.10</span> 8H3</a></li>
+  <li><a href="#h4" id="toc-h4" class="nav-link" data-scroll-target="#h4"><span class="header-section-number">8.2.11</span> 8H4</a></li>
+  <li><a href="#h5" id="toc-h5" class="nav-link" data-scroll-target="#h5"><span class="header-section-number">8.2.12</span> 8H5</a></li>
+  <li><a href="#h6" id="toc-h6" class="nav-link" data-scroll-target="#h6"><span class="header-section-number">8.2.13</span> 8H6</a></li>
+  <li><a href="#h7" id="toc-h7" class="nav-link" data-scroll-target="#h7"><span class="header-section-number">8.2.14</span> 8H7</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/wzbillings/SR-notes/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li><li><a href="https://github.com/wzbillings/SR-notes/blob/main/cp8.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./cp1.html">Textbook</a></li><li class="breadcrumb-item"><a href="./cp8.html"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Conditional Manatees</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Conditional Manatees</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rethinking)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dagitty)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This chapter is a brief introduction to the concept of conditional inference, focusing on the specific concept of linear interaction in models.</p>
+<section id="chapter-notes" class="level2" data-number="8.1">
+<h2 data-number="8.1" class="anchored" data-anchor-id="chapter-notes"><span class="header-section-number">8.1</span> Chapter notes</h2>
+<ul>
+<li>Bullet holes in bombers and propeller scars on manatees – both are <em>conditional on survival</em>. This is the motivating example for the chapter.</li>
+<li>An <em>interaction</em> is a statistical method for modeling interdependence between two features of a model.</li>
+<li>Using an interaction term in a model is nearly always better than fitting stratified models.</li>
+<li>In Bayesian models, it’s better to use an index-coding approach and have parameters vary by the level of a categorical variable, rather than using an indicator-coding approach, which makes assigning priors difficult.</li>
+<li>An <em>interaction</em> is also just a slope which is conditional on another effect – the value of one variable modifies the effect of the other.</li>
+<li>Linear interactions are symmetrical. If variable <span class="math inline">\(x\)</span> interacts with variable <span class="math inline">\(y\)</span>, then <span class="math inline">\(y\)</span> interacts with <span class="math inline">\(x\)</span>. “There is just no way to specify a simple, linear interaction in which you can say the effect of some variable <span class="math inline">\(x\)</span> depends on <span class="math inline">\(z\)</span>, but the effect of <span class="math inline">\(z\)</span> does not depend upon <span class="math inline">\(x\)</span>.”</li>
+<li>Continuous interactions are harder to think about as conditional slopes, because we would need an uncountably infinite number of categories. Instead, we can think about interactions as nested linear models.</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\mu_i &amp;= \alpha + \gamma_{W,i}W_i + \beta_S S_i \\
+\gamma_{W,i} &amp;= \beta_{W} + \beta_{WS} S_i
+\end{aligned}
+\]</span></p>
+<ul>
+<li>We could include nested terms for both variables, but the resultant model has unidentifiable parameters – in the final term below, only the sum <span class="math inline">\((\beta_{WS} + \beta_{SW})\)</span> can be estimated.</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\mu_i &amp;= \alpha + \gamma_{W,i}W_i + \gamma_{S,i} S_i \\
+\gamma_{W,i} &amp;= \beta_{W} + \beta_{WS} S_i \\
+\gamma_{S_i} &amp;= \beta_{S} + \beta_{SW} W_i \\
+\therefore \mu_i &amp;= \alpha + \left(\beta_{W} + \beta_{WS} S_i\right)W_i + \left(\beta_{S} + \beta_{SW} W_i\right) S_i \\
+&amp;= \alpha + \beta_W W_i + \beta_S S_i + (\beta_{WS} + \beta_{SW}) W_iS_i
+\end{aligned}
+\]</span></p>
+<ul>
+<li>The best way to understand interactions is to plot the predictions at multiple levels of the interacting variables.</li>
+</ul>
+</section>
+<section id="exercises" class="level2" data-number="8.2">
+<h2 data-number="8.2" class="anchored" data-anchor-id="exercises"><span class="header-section-number">8.2</span> Exercises</h2>
+<section id="e1" class="level3" data-number="8.2.1">
+<h3 data-number="8.2.1" class="anchored" data-anchor-id="e1"><span class="header-section-number">8.2.1</span> 8E1</h3>
+<ol type="1">
+<li>Bread dough rises because of yeast and temperature. Yeast amount and temperature interact to determine how much the bread dough rises.</li>
+<li>Education and parents’ education could interact to determine higher income. While people with more education have higher salaries on average, people who are educated and also have educated parents are likely to have even higher average salaries at the same level of individual education.</li>
+<li>Gasoline and pressing the accelerator make the car go. If you never press the accelerator, a full tank won’t do anything.</li>
+</ol>
+</section>
+<section id="e2" class="level3" data-number="8.2.2">
+<h3 data-number="8.2.2" class="anchored" data-anchor-id="e2"><span class="header-section-number">8.2.2</span> 8E2</h3>
+<p>Only statement one (Caramelizing onions requires cooking over a low heat and making sure the onions don’t dry out) involves an interaction. Both things must be true simultaneously, whereas the effects are independent of each other in the other statements.</p>
+</section>
+<section id="e3" class="level3" data-number="8.2.3">
+<h3 data-number="8.2.3" class="anchored" data-anchor-id="e3"><span class="header-section-number">8.2.3</span> 8E3</h3>
+<p>Of course all of these models only make sense if we have a correct way to quantify those variables.</p>
+<ol type="1">
+<li><span class="math inline">\(\text{onion caramelization} = \alpha + \beta_1 \cdot \text{temperature} + \beta_2 \cdot \text{moisture} + \gamma_{12} \cdot \text{temperature} \cdot \text{moisture}\)</span></li>
+<li><span class="math inline">\(\text{car speed} = \alpha + \beta_2 \cdot \text{number of cylinders} + \beta_2 \cdot \text{fuel injector quality}\)</span></li>
+<li><span class="math inline">\(\text{political beliefs} = \alpha + \beta_1 \cdot \text{parental beliefs} + \beta_2 \cdot \text{friend beliefs}\)</span></li>
+<li><span class="math inline">\(\text{intelligence} = \alpha + \beta_1 \cdot \text{sociality} + \beta_2 \cdot \text{manipulable appendages}.\)</span></li>
+</ol>
+</section>
+<section id="m1" class="level3" data-number="8.2.4">
+<h3 data-number="8.2.4" class="anchored" data-anchor-id="m1"><span class="header-section-number">8.2.4</span> 8M1</h3>
+<p>In the tulips example, we saw that water and shade levels interact to affect tulip blooms. Tulips need both water and shade to produce blooms; at a low-light level, the effect of water decreases because no amount of water can replace the lost light. Similarly, if plants have no water, an adequate amount of sunlight will not produce blooms and might even become harmful.</p>
+<p>If the hot temperature prevents blooms all together, then the hot temperature would modify the effect of shade, water, and their interaction to all become zero – no amount of shade or water can allow for blooms, and their interaction does not help in this context either.</p>
+</section>
+<section id="m2" class="level3" data-number="8.2.5">
+<h3 data-number="8.2.5" class="anchored" data-anchor-id="m2"><span class="header-section-number">8.2.5</span> 8M2</h3>
+<p>The linear model for the tulips example without heat was <span class="math display">\[
+\mu_i = \alpha + \beta_W W_i + \beta_S S_i + \gamma_{SW} S_iW_i.
+\]</span></p>
+<p>We can make all of those terms dependent on <span class="math inline">\(H_i\)</span>, the heat treatment, in order to accomplish this.</p>
+<p><span class="math display">\[
+\mu_i = \alpha_{H[i]} + \beta^{W}_{H[i]} + \beta^S_{H[i]} + \gamma^{SW}_{H[i]} S_iW_i.
+\]</span></p>
+<p>Now it is possible for these effects to all be zero (or much smaller) if <span class="math inline">\(H[i] = 1\)</span>, and have their normal values if <span class="math inline">\(H[i] = 0\)</span>. Another way to write this model could be something like <span class="math display">\[
+\begin{aligned}
+\mu_i &amp;= \lambda_i (1 - H_i) \\
+\lambda_i &amp;= \alpha + \beta_W W_i + \beta_S S_i + \gamma_{SW} S_iW_i
+\end{aligned}
+\]</span> where <span class="math inline">\(H_i\)</span> again takes on values of <span class="math inline">\(0\)</span> (cold) and <span class="math inline">\(1\)</span> (hot).</p>
+</section>
+<section id="m3" class="level3" data-number="8.2.6">
+<h3 data-number="8.2.6" class="anchored" data-anchor-id="m3"><span class="header-section-number">8.2.6</span> 8M3</h3>
+<p>We cannot create a data set where the raven population and wolf population have a linear statistical interaction, because a linear statistical interaction has at least two predictors. Here we only have an outcome (the raven population size) and a predictor (the wolf population size). This is more of an example of a differential equations type problem than a statistical interaction. In this model, the raven population size would have to vary with the wolf population size, and we do not know about the functional form of this effect, so an appropriate model would be something like</p>
+<p><span class="math display">\[
+\frac{dR}{dt} = f\left(W(t)\right),
+\]</span> where <span class="math inline">\(f\)</span> is a function that takes the wolf population size at time <span class="math inline">\(t\)</span> as an input, and returns the change in the raven population before the next time point.</p>
+</section>
+<section id="m4" class="level3" data-number="8.2.7">
+<h3 data-number="8.2.7" class="anchored" data-anchor-id="m4"><span class="header-section-number">8.2.7</span> 8M4</h3>
+<p>We’ll use the sample model for the tulip blooms without heat from the <a href="###8M2">earlier exercise</a>. The priors used in the chapter were</p>
+<p><span class="math display">\[
+\begin{aligned}
+\alpha &amp;\sim \text{Normal}(0.5, 0.25) \\
+\beta_W &amp;\sim \text{Normal}(0, 0.25) \\
+\beta_S &amp;\sim \text{Normal}(0, 0.25) \\
+\gamma_{SW} &amp;\sim \text{Normal}(0, 0.25) \\
+\end{aligned}
+\]</span></p>
+<p>We want to use new priors that constrain the effect of water to be positive and the effect of shade to be negative. At this point in the book, the distribution we learned about that has to be positive is lognormal, and we can force the effect of shade to be negative by taking the additive inverse of a lognormal prior. Since we know that having more water increases the effect of light (because if a tulip has plenty of water, getting enough sunshine is the new limiting factor on the blooms), we know that having more water should decrease the effect of shade, so we’ll make the interaction negative as well. Lognormal priors can be hard to calibrate, so we’ll adjust the parameters until the prior predictive simulation looks nice. The priors we’ll use are as follows.</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mu_i &amp;= \alpha + \beta_W W_i - \beta_S S_i - \gamma_{SW} S_iW_i \\
+\alpha &amp;\sim \text{Normal}(0.5, 0.25) \\
+\beta_W &amp;\sim \text{Log-normal}(-3, 1) \\
+\beta_S &amp;\sim \text{Log-normal}(-3, 1) \\
+\gamma_{SW} &amp;\sim \text{Log-normal}(-3, 1)
+\end{aligned}
+\]</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">370</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the data</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(tulips)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> tulips</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>blooms_std <span class="ot">&lt;-</span> d<span class="sc">$</span>blooms <span class="sc">/</span> <span class="fu">max</span>(d<span class="sc">$</span>blooms)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>water_cent <span class="ot">&lt;-</span> d<span class="sc">$</span>water <span class="sc">-</span> <span class="fu">mean</span>(d<span class="sc">$</span>water)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>shade_cent <span class="ot">&lt;-</span> d<span class="sc">$</span>shade <span class="sc">-</span> <span class="fu">mean</span>(d<span class="sc">$</span>shade)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit the model and extract the prior samples</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>m_8m4 <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">alist</span>(</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        blooms_std <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        mu <span class="ot">&lt;-</span> a <span class="sc">+</span> bw <span class="sc">*</span> water_cent <span class="sc">-</span> bs <span class="sc">*</span> shade_cent <span class="sc">-</span> bws <span class="sc">*</span> water_cent <span class="sc">*</span> shade_cent,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        a <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="fl">0.5</span>, <span class="fl">0.25</span>),</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        bw  <span class="sc">~</span> <span class="fu">dlnorm</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">1</span>),</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        bs  <span class="sc">~</span> <span class="fu">dlnorm</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">1</span>),</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        bws <span class="sc">~</span> <span class="fu">dlnorm</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">1</span>),</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> d</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>prior <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">extract.prior</span>(m_8m4)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the prpd</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> <span class="sc">-</span><span class="dv">1</span><span class="sc">:</span><span class="dv">1</span>) {</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    idx <span class="ot">&lt;-</span> <span class="fu">which</span>(d<span class="sc">$</span>shade_cent <span class="sc">==</span> s)</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot</span>(</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        d<span class="sc">$</span>water_cent[idx],</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>        d<span class="sc">$</span>blooms_std[idx],</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>        <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">1.5</span>),</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        <span class="at">xlab =</span> <span class="st">"water"</span>,</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        <span class="at">ylab =</span> <span class="st">"blooms"</span>,</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">pch =</span> <span class="dv">16</span>,</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> rethinking<span class="sc">::</span>rangi2</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    <span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">1</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mtext</span>(<span class="fu">paste0</span>(<span class="st">"shade = "</span>, s))</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>    mu <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">link</span>(</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        m_8m4,</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> <span class="fu">data.frame</span>(<span class="at">shade_cent =</span> s, <span class="at">water_cent =</span> <span class="sc">-</span><span class="dv">1</span><span class="sc">:</span><span class="dv">1</span>),</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        <span class="at">post =</span> prior</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>) <span class="fu">lines</span>(<span class="sc">-</span><span class="dv">1</span><span class="sc">:</span><span class="dv">1</span>, mu[i, ], <span class="at">col =</span> <span class="fu">col.alpha</span>(<span class="st">"black"</span>, <span class="fl">0.3</span>))</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cp8_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>I did a few different simulations and ultimately ended up with the prior simulation shown here. The slope priors are regularizing and skeptical, so we think that a smaller effect is more likely <em>a priori</em> – if the effects are large, the data can demonstrate that for us.</p>
+</section>
+<section id="h1" class="level3" data-number="8.2.8">
+<h3 data-number="8.2.8" class="anchored" data-anchor-id="h1"><span class="header-section-number">8.2.8</span> 8H1</h3>
+<p>Now we want to add the <em>bed</em> variable to the tulips example, which we’ll denote with <span class="math inline">\(B_i\)</span>. We only want to include the bed effect as a main effect, which means we need to have a different intercept for each bed – so our model will assume that each bed can start at a different baseline, but the effects of water, shade, and their interaction, are homogeneous across the beds. This is probably an OK assumption in the context of a controlled greenhouse setting.</p>
+<p>The model will be as follows.</p>
+<p><span class="math display">\[
+\begin{aligned}
+y_i &amp;\sim \text{Normal} \left(\mu_i, \sigma\right) \\
+\mu_i &amp;= \alpha_{B[i]} + \beta_W W_i - \beta_S S_i - \gamma_{SW} S_iW_i \\
+\alpha_{B[i]} &amp;\sim \text{Normal}(0.5, 0.25) \\
+\beta_W &amp;\sim \text{Log-normal}(-3, 1) \\
+\beta_S &amp;\sim \text{Log-normal}(-3, 1) \\
+\gamma_{SW} &amp;\sim \text{Log-normal}(-3, 1) \\
+\sigma &amp;\sim \text{Exponential}(1)
+\end{aligned}
+\]</span></p>
+<p>That is, we’ll use the same constrained, regularizing priors, as we did for the previous problem, but we’ll have a separate intercept for each bed. In reality, it would probably be good to have the intercept parameters be correlated as well, but we haven’t gone over that in the book yet. Let’s go ahead and fit the model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">370</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># For the index coding to work, we need a numeric version of the beds.</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>b <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(d<span class="sc">$</span>bed)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit the model</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>m_8h1 <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">alist</span>(</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        blooms_std <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        mu <span class="ot">&lt;-</span> a[b] <span class="sc">+</span> bw <span class="sc">*</span> water_cent <span class="sc">-</span> bs <span class="sc">*</span> shade_cent <span class="sc">-</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>            bws <span class="sc">*</span> water_cent <span class="sc">*</span> shade_cent,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        a[b] <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="fl">0.5</span>, <span class="fl">0.25</span>),</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        bw  <span class="sc">~</span> <span class="fu">dlnorm</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">1</span>),</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        bs  <span class="sc">~</span> <span class="fu">dlnorm</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">1</span>),</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        bws <span class="sc">~</span> <span class="fu">dlnorm</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">1</span>),</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> d</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m_8h1, <span class="at">depth =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           mean         sd       5.5%     94.5%
+a[1]  0.2733479 0.03603110 0.21576327 0.3309326
+a[2]  0.3964371 0.03601250 0.33888214 0.4539920
+a[3]  0.4091452 0.03601137 0.35159204 0.4666983
+bw    0.2017188 0.02612291 0.15996936 0.2434683
+bs    0.1039759 0.02652450 0.06158467 0.1463672
+bws   0.1312346 0.03272451 0.07893448 0.1835347
+sigma 0.1091610 0.01511214 0.08500884 0.1333131</code></pre>
+</div>
+</div>
+<p>From the precis, we can see that the first bed (bed 1, with parameter <code>a[1]</code>) has a lower intercept than the other two beds – maybe this bed is next to a drafty space, is the first bed in the water connection and gets the pipe sludge, or just had less bloomds for some reason. But after we account for the different baselines between beds, the estimates of the parameter effects are similar to the last model, so this should just improve the accuracy of our model predictions for the first bed. We can plot the predictions to see.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the prpd</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"#E69F00"</span>, <span class="st">"#56B4E9"</span>, <span class="st">"#009E73"</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> <span class="sc">-</span><span class="dv">1</span><span class="sc">:</span><span class="dv">1</span>) {</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    idx <span class="ot">&lt;-</span> <span class="fu">which</span>(d<span class="sc">$</span>shade_cent <span class="sc">==</span> s)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot</span>(</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        d<span class="sc">$</span>water_cent[idx],</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        d<span class="sc">$</span>blooms_std[idx],</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">1.5</span>),</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">xlab =</span> <span class="st">"water"</span>,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">ylab =</span> <span class="st">"blooms"</span>,</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">pch =</span> <span class="dv">16</span>,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> cols[d<span class="sc">$</span>b[idx]]</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">1</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mtext</span>(<span class="fu">paste0</span>(<span class="st">"shade = "</span>, s))</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (bd <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) {</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        mu <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">link</span>(</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>            m_8h1,</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> <span class="fu">data.frame</span>(<span class="at">shade_cent =</span> s, <span class="at">water_cent =</span> <span class="sc">-</span><span class="dv">1</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">b =</span> bd)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>) {</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>            <span class="fu">lines</span>(</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>                <span class="sc">-</span><span class="dv">1</span><span class="sc">:</span><span class="dv">1</span>, mu[i, ],</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>                <span class="at">col =</span> <span class="fu">col.alpha</span>(cols[bd], <span class="fl">0.3</span>)</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="fu">c</span>(<span class="st">"Bed a"</span>, <span class="st">"Bed b"</span>, <span class="st">"Bed c"</span>), <span class="at">col =</span> cols, <span class="at">lty =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cp8_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>While it’s actually quite difficult to make statistical conclusions without multiple replicates (here we have only one measurement per bed per treatment), we can see the clear difference between bed a and the other two beds in the model predictions. However, it also appears that our model predictions may not capture the true effect, as from the observed data it seems plausible that the effects of water and shade vary across beds. We would need actual replicates to be more certain of that, though.</p>
+</section>
+<section id="h2" class="level3" data-number="8.2.9">
+<h3 data-number="8.2.9" class="anchored" data-anchor-id="h2"><span class="header-section-number">8.2.9</span> 8H2</h3>
+<p>Now we can compare the models with and without bed using WAIC.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">compare</span>(m_8m4, m_8h1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           WAIC        SE    dWAIC      dSE     pWAIC    weight
+m_8h1 -22.20890  9.935022 0.000000       NA 10.099017 0.7754177
+m_8m4 -19.73058 10.459586 2.478319 8.389834  7.390765 0.2245823</code></pre>
+</div>
+</div>
+<p>We see that the WAIC is smaller for the model with bed included, although the difference is small. This implies that adding the bed variable as a main effect increases the accuracy of our posterior predictions, although the improvement is not spectacular. As we saw by looking at summaries of the posterior distribution in the previous exercise, the difference in the estimated intercept for bed A vs.&nbsp;bed b and bed c, without any major changes in the estimates of the slope parameters, should account for this difference.</p>
+</section>
+<section id="h3" class="level3" data-number="8.2.10">
+<h3 data-number="8.2.10" class="anchored" data-anchor-id="h3"><span class="header-section-number">8.2.10</span> 8H3</h3>
+<p>For this question, we’ll focus on the <code>ruggedness</code> data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"rugged"</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Repeating data processing steps from the book</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> rugged</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>log_gdp <span class="ot">&lt;-</span> <span class="fu">log</span>(d<span class="sc">$</span>rgdppc_2000)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>dd <span class="ot">&lt;-</span> d[<span class="fu">complete.cases</span>(d<span class="sc">$</span>rgdppc_2000), ]</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>dd<span class="sc">$</span>log_gdp_std <span class="ot">&lt;-</span> dd<span class="sc">$</span>log_gdp <span class="sc">/</span> <span class="fu">mean</span>(dd<span class="sc">$</span>log_gdp)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>dd<span class="sc">$</span>rugged_std <span class="ot">&lt;-</span> dd<span class="sc">$</span>rugged <span class="sc">/</span> <span class="fu">max</span>(dd<span class="sc">$</span>rugged)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>dd<span class="sc">$</span>cid <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(dd<span class="sc">$</span>cont_africa <span class="sc">==</span> <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we need to recreate model <code>m8.5</code> from the chapter. Well, at least that’s what the book says to do, but model <code>m8.5</code> is about the tulips example, so we’ll recreate <code>m8.3</code> instead.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>m8<span class="fl">.3</span> <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">alist</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        log_gdp_std <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        mu <span class="ot">&lt;-</span> a[cid] <span class="sc">+</span> b[cid] <span class="sc">*</span> (rugged_std <span class="sc">-</span> <span class="fl">0.215</span>),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        a[cid] <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">1</span>, <span class="fl">0.1</span>),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        b[cid] <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="fl">0.3</span>),</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> dd</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m8<span class="fl">.3</span>, <span class="at">depth =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            mean          sd        5.5%       94.5%
+a[1]   0.8865629 0.015675157  0.86151094  0.91161480
+a[2]   1.0505698 0.009936261  1.03468975  1.06644988
+b[1]   0.1325055 0.074201996  0.01391637  0.25109461
+b[2]  -0.1425764 0.054747543 -0.23007353 -0.05507924
+sigma  0.1094903 0.005934777  0.10000535  0.11897519</code></pre>
+</div>
+</div>
+<p>We got similar results to what’s in the book, which is good. Now we want to examine the model with PSIS to determine if the Seychelles are influential on the estimation of parameters for the Africa group.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">370</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>m8<span class="fl">.3</span>_psis <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">PSIS</span>(m8<span class="fl">.3</span>, <span class="at">pointwise =</span> <span class="cn">TRUE</span>, <span class="at">n =</span> <span class="dv">20000</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(m8<span class="fl">.3</span>_psis) <span class="ot">&lt;-</span> dd<span class="sc">$</span>isocode</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>psis_sort <span class="ot">&lt;-</span> m8<span class="fl">.3</span>_psis[<span class="fu">order</span>(m8<span class="fl">.3</span>_psis<span class="sc">$</span>k, <span class="at">decreasing =</span> <span class="cn">TRUE</span>), ]</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>psis_sort <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>          PSIS       lppd    penalty  std_err         k
+LSO -1.1417140  0.5708570 0.31929940 15.27576 0.4467221
+SYC  1.3274852 -0.6637426 0.63043059 15.27576 0.3947676
+CHE  2.8274338 -1.4137169 0.46756727 15.27576 0.3148571
+TJK  0.4998540 -0.2499270 0.30731105 15.27576 0.2365403
+GNQ  3.3713051 -1.6856526 0.21035122 15.27576 0.2249513
+MUS  0.8394823 -0.4197411 0.08626176 15.27576 0.1688589</code></pre>
+</div>
+</div>
+<p>The most influential country on the model fit, judging by the Pareto <span class="math inline">\(k\)</span> values, are Lesotho and the Seychelles, which are both highly rugged nations in Africa.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>dd_sorted <span class="ot">&lt;-</span> dd[<span class="fu">order</span>(m8<span class="fl">.3</span>_psis<span class="sc">$</span>k, <span class="at">decreasing =</span> <span class="cn">TRUE</span>), ]</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    dd_sorted<span class="sc">$</span>rugged_std, psis_sort<span class="sc">$</span>k,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Ruggedness as prop. of maximum"</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">"PSIS Pareto k value"</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cp8_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can see that highly rugged nations have the largest Pareto <span class="math inline">\(k\)</span> values, indicating that they are the most influential variables. We also know that these values have a high leverage in a linear regression model, so that makes sense.</p>
+<p>Now that we know these nations with high ruggedness are having an oversized effect on the estimated trend, we can try to use robust regression to lower their influence. We’ll use the same model, but with a Student’s <span class="math inline">\(t\)</span> distribution likelihood (with 2 d.f.) instead of a Normal likelihood. Personally I prefer 3 degrees of freedom (the variance of the distribution is infinite if the d.f. is not larger than 2, which is a prior belief that never makes sense in a physical context to me), but for now I’ll do what the textbook says.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>m8<span class="fl">.3</span>_r <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">alist</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>        log_gdp_std <span class="sc">~</span> <span class="fu">dstudent</span>(<span class="at">nu =</span> <span class="dv">2</span>, mu, sigma),</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>        mu <span class="ot">&lt;-</span> a[cid] <span class="sc">+</span> b[cid] <span class="sc">*</span> (rugged_std <span class="sc">-</span> <span class="fl">0.215</span>),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>        a[cid] <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">1</span>, <span class="fl">0.1</span>),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>        b[cid] <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="fl">0.3</span>),</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> dd</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m8<span class="fl">.3</span>_r, <span class="at">depth =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             mean         sd        5.5%       94.5%
+a[1]   0.86259888 0.01614146  0.83680170  0.88839606
+a[2]   1.04577255 0.01097134  1.02823823  1.06330688
+b[1]   0.11241664 0.07503557 -0.00750470  0.23233797
+b[2]  -0.21378054 0.06352620 -0.31530767 -0.11225341
+sigma  0.08451473 0.00673094  0.07375738  0.09527207</code></pre>
+</div>
+</div>
+<p>We can see by comparing the two model summaries that a few of the parameters are slightly different. Let’s now compare the models using PSIS.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">12312</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">compare</span>(m8<span class="fl">.3</span>, m8<span class="fl">.3</span>_r, <span class="at">func =</span> PSIS, <span class="at">n =</span> <span class="dv">20000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            PSIS       SE    dPSIS      dSE    pPSIS       weight
+m8.3   -258.8088 15.27974  0.00000       NA 5.318484 1.000000e+00
+m8.3_r -221.8080 18.11559 37.00089 5.884289 5.760308 9.233328e-09</code></pre>
+</div>
+</div>
+<p>Here, we can see that the non-robust model actually appears to be giving us worse predictions than the non-robust model. However, we know that PSIS is just a measure of predictive performance, so it’s possible that our robust model is still a better conceptual model that provides more accurate inferences at the cost of appearing to underfit the data. Since the two models have every similar numbers of parameters, predictive accuracy criteria are likely to be more sensitive to this kind of “underfitting”, when we actually know outside of the statistics world that we’re reducing the impact of outlying values.</p>
+<p>Anyways, we can also look at the individual pareto <span class="math inline">\(k\)</span> values for the new model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">370</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>m8<span class="fl">.3</span>r_psis <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">PSIS</span>(m8<span class="fl">.3</span>_r, <span class="at">pointwise =</span> <span class="cn">TRUE</span>, <span class="at">n =</span> <span class="dv">20000</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(m8<span class="fl">.3</span>r_psis) <span class="ot">&lt;-</span> dd<span class="sc">$</span>isocode</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>psis_sort_r <span class="ot">&lt;-</span> m8<span class="fl">.3</span>r_psis[<span class="fu">order</span>(m8<span class="fl">.3</span>r_psis<span class="sc">$</span>k, <span class="at">decreasing =</span> <span class="cn">TRUE</span>), ]</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>psis_sort_r <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         PSIS      lppd     penalty std_err          k
+EST -2.787885 1.3939424 0.007899841 18.1216 0.13309736
+LSO -1.553968 0.7769838 0.264018936 18.1216 0.11825246
+ALB -2.720143 1.3600717 0.013599882 18.1216 0.11215073
+ATG -2.777583 1.3887917 0.008395917 18.1216 0.10169758
+UGA -2.744650 1.3723251 0.010101504 18.1216 0.09032803
+BEN -2.552244 1.2761221 0.019180005 18.1216 0.08104976</code></pre>
+</div>
+</div>
+<p>Now we can see that the pareto <span class="math inline">\(k\)</span> values are all much lower. While Lesotho still appears in the top 6, it is overall much less influential, and Seychelles no longer appears in the top 6.</p>
+</section>
+<section id="h4" class="level3" data-number="8.2.11">
+<h3 data-number="8.2.11" class="anchored" data-anchor-id="h4"><span class="header-section-number">8.2.11</span> 8H4</h3>
+<p>For this problem, we’ll use the <code>nettle</code> data to examine the hypothesis that higher food security leads to a higher language diversity in a region.</p>
+<p>First we need to construct the outcome variable.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(nettle)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> nettle</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>lang.per.cap <span class="ot">&lt;-</span> d<span class="sc">$</span>num.lang <span class="sc">/</span> d<span class="sc">$</span>k.pop</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co"># The log of this will be our actual outcome variable</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>log.lang.per.cap <span class="ot">&lt;-</span> <span class="fu">log10</span>(d<span class="sc">$</span>lang.per.cap)</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Center the outcome</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">&lt;-</span> <span class="fu">mean</span>(d<span class="sc">$</span>log.lang.per.cap)</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>std.log.lang.per.cap <span class="ot">&lt;-</span> d<span class="sc">$</span>log.lang.per.cap <span class="sc">-</span> ybar</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="co"># We also need the log of the area</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>log.area <span class="ot">&lt;-</span> <span class="fu">log10</span>(d<span class="sc">$</span>area)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Since I don’t really know anything about this problem other than what the textbook tells me, I’ll follow the specified steps. The effects we want to evaluate here are the effects of <code>mean.growing.season</code>, which we’ll call <span class="math inline">\(M\)</span>, and <code>sd.growing.season</code>, on our model. We also need to consider <span class="math inline">\(A\)</span>, the log of <code>area</code>, as a potential cause. I’m not sure how we would work in the number of weather stations in our model, so for now we’ll leave that alone – although there is a noticeable trend in the data that as the number of measurement stations increased, so did the SD of the growing season length. So in a real academic paper, we would definitely need to think about how to model that.</p>
+<p>First let’s look at the bivariate relationship between each of these values and the outcome.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), <span class="at">nrow =</span> <span class="dv">1</span>))</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    d<span class="sc">$</span>mean.growing.season, d<span class="sc">$</span>log.lang.per.cap,</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Mean length of growing season (months)"</span>,</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">"log10 number of langauges per capita"</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    d<span class="sc">$</span>sd.growing.season, d<span class="sc">$</span>log.lang.per.cap,</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Standard deviation of length of growing season (months)"</span>,</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">""</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    d<span class="sc">$</span>log.area, d<span class="sc">$</span>log.lang.per.cap,</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"log10 area of country (sq. km.)"</span>,</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">""</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cp8_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In general, none of these trends looks particularly strong, although there appear to be some trends with the growing season variables.</p>
+<p>Now, let’s try to fit a simple model that models the log languages per capita based on the mean length of the growing season. We’ll use a normal likelihood since the outcome variable is on the log scale. Since we aren’t using a count model, which would naturally constrict the domain of the outcome variable, I also chose to center the outcome variable before modeling to make assigning a prior for the intercept feasible.</p>
+<p>For the intercept, we’ll use a generic prior centered at 0 (the mean after standardization). For the effect of the mean growing season length, we’ll use a regularizing, skeptical prior centered around 0.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Set seed for all of our models in this section</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">370</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>m_mgs <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>        std.log.lang.per.cap <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>        mu <span class="ot">&lt;-</span> a <span class="sc">+</span> b_mgsl <span class="sc">*</span> mean.growing.season,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>        a <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">5</span>),</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>        b_mgsl <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> d</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m_mgs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             mean         sd        5.5%      94.5%
+a      -0.5310682 0.17466211 -0.81021195 -0.2519244
+b_mgsl  0.0754357 0.02267654  0.03919421  0.1116772
+sigma   0.6095826 0.04980052  0.52999173  0.6891734</code></pre>
+</div>
+</div>
+<p>We can see from the summary that there is a small prior effect of mean growing season length on the outcome. Now, let’s check whether the area should be a coefficient in this model as well.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>m_mgs_a <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>        std.log.lang.per.cap <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>        mu <span class="ot">&lt;-</span> a <span class="sc">+</span> b_mgsl <span class="sc">*</span> mean.growing.season <span class="sc">+</span> b_area <span class="sc">*</span> log.area,</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>        a <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">5</span>),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>        b_mgsl <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>        b_area <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> d</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m_mgs_a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             mean         sd        5.5%      94.5%
+a       0.6533186 0.83024907 -0.67357977 1.98021696
+b_mgsl  0.0629484 0.02394189  0.02468463 0.10121217
+b_area -0.1952263 0.13386781 -0.40917288 0.01872034
+sigma   0.6009410 0.04909953  0.52247048 0.67941155</code></pre>
+</div>
+</div>
+<p>The effect of the area variable is negative and a large amount of the density lies below zero, which suggests that the area could be a real effect that we need to control for. Controlling for the area size also affects out estimate of the effect of mean growing season length. Let’s compare the models via WAIC and see if the area improves posterior predictions.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">compare</span>(m_mgs, m_mgs_a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            WAIC       SE     dWAIC      dSE    pWAIC   weight
+m_mgs   144.5949 15.49001 0.0000000       NA 3.778308 0.539875
+m_mgs_a 144.9146 16.01579 0.3196787 3.673048 5.049032 0.460125</code></pre>
+</div>
+</div>
+<p>The WAICs are extremely similar, and the WAIC for the model without area is slightly better, so I don’t think we need area in this model. If we think about the problem casually, I don’t understand why the area would be a confounder or a collider in this situation, because the area doesn’t casually determine the mean growing season length in a country. However, larger countries should have more variation in the growing season length (since larger area overall means they can cover more areas of varying latitude). But, I think that a larger area should mean there is more room for multiple communities to exist and become isolated, so a larger country should also have more languages on average.</p>
+<p>So I think the DAG should look something like this.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">c</span>(<span class="dv">1</span>))</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>dag <span class="ot">&lt;-</span> dagitty<span class="sc">::</span><span class="fu">dagitty</span>(</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'DAG {</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="st">    "languages" &lt;- "mean length"</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="st">    "languages" &lt;- "SD length" &lt;- "area"</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="st">    "languages" &lt;- "area"</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="st">    }'</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="fu">coordinates</span>(dag) <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">c</span>(<span class="st">"languages"</span> <span class="ot">=</span> <span class="dv">0</span>, <span class="st">"mean length"</span> <span class="ot">=</span> <span class="dv">1</span>, <span class="st">"SD length"</span> <span class="ot">=</span> <span class="sc">-</span><span class="dv">1</span>, <span class="st">"area"</span> <span class="ot">=</span> <span class="sc">-</span><span class="dv">1</span>),</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">c</span>(<span class="st">"languages"</span> <span class="ot">=</span> <span class="dv">0</span>, <span class="st">"mean length"</span> <span class="ot">=</span> <span class="dv">0</span>, <span class="st">"SD length"</span> <span class="ot">=</span> <span class="fl">0.5</span>, <span class="st">"area"</span> <span class="ot">=</span> <span class="sc">-</span><span class="fl">0.5</span>)</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(dag)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cp8_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>So, in our final model we’ll need to include area anyways, so we might as well leave it in there for now.</p>
+<p>Next we want to examine the effect of the SD of growing season length on languages. The <code>area</code> variable is a confounder in this casual structure, so we need to include that as well to avoid getting a biased estimate.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>m_sgs_a <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>        std.log.lang.per.cap <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>        mu <span class="ot">&lt;-</span> a <span class="sc">+</span> b_sgsl <span class="sc">*</span> sd.growing.season <span class="sc">+</span> b_area <span class="sc">*</span> log.area,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>        a <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">5</span>),</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>        b_sgsl <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>        b_area <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> d</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m_sgs_a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              mean         sd       5.5%      94.5%
+a       1.43691137 0.79286148  0.1697656 2.70405716
+b_sgsl -0.09330776 0.07997807 -0.2211282 0.03451264
+b_area -0.22761855 0.15173599 -0.4701220 0.01488487
+sigma   0.62213062 0.05082317  0.5409054 0.70335587</code></pre>
+</div>
+</div>
+<p>We see that the SD of growing season length does appear to have a negative effective on the overall number of languages. We cannot rule out entirely the lack of an effect (assuming our causal structure is correct and linear models are appropriate), but there is likely to be a negative effect of the SD of growing length on number of languages.</p>
+<p>So far we’ve seen that an average longer growing season leads to more languages per capita, meaning that more food abundance leads to smaller, more isolated social groups and the development of more languages. However, higher variation in the growing season length leads to lower languages per capita, suggesting the need to form larger social networks for insurance against short growing seasons. In both models, we saw a negative effect of area, indicating that as a country becomes larger, the number of languages becomes smaller, which is the opposite of what I would have thought. Perhaps larger countries, on average, have shorter growing seasons? We can examine that effect quickly.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">nrow =</span> <span class="dv">1</span>))</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    d<span class="sc">$</span>mean.growing.season, d<span class="sc">$</span>log.area,</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Mean length of growing season (months)"</span>,</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">"log10 area of country (sq. km.)"</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>    d<span class="sc">$</span>sd.growing.season, d<span class="sc">$</span>log.area,</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">"Standard deviation of length of growing season (months)"</span>,</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">""</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cp8_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Interestingly, we can see slight patterns in both trends. Larger countries seem to have slightly smaller average growing seasons, and more uncertainty in their growing seasons. I think the effect on the mean length of the growing season is quite small, and is likely to not be causal, although we could postulate that larger countries tend to cover more sparsely inhabited territory which has a shorter growing season. There is a definite trend in the standard deviation of the growing season though – it’s hard to tell if this is an effect of covering more latitude areas, or a function of a number of measuring systems. We would need a variable on the range of latitude covered by each country to disentangle those effects.</p>
+<p>Anyways, now we can fit the main model. We’ll fit two models that include all three variables. One will include just main effects, and the other will include an interaction between the effects of mean and SD of growing season length. Then we can compare those models.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>m_noint <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>        std.log.lang.per.cap <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>        mu <span class="ot">&lt;-</span> a <span class="sc">+</span> b_sgsl <span class="sc">*</span> sd.growing.season <span class="sc">+</span> b_mgsl <span class="sc">*</span> mean.growing.season <span class="sc">+</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>            b_area <span class="sc">*</span> log.area,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>        a <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">5</span>),</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>        b_mgsl <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>        b_sgsl <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>        b_area <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> d</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m_noint)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              mean         sd        5.5%       94.5%
+a      -0.19725369 0.91289412 -1.65623482  1.26172743
+b_mgsl  0.07583973 0.02418582  0.03718613  0.11449334
+b_sgsl -0.15778988 0.07809425 -0.28259957 -0.03298018
+b_area -0.01221519 0.15896098 -0.26626554  0.24183516
+sigma   0.58530486 0.04782868  0.50886538  0.66174433</code></pre>
+</div>
+</div>
+<p>After including both the mean and SD of growing season length in the model, the effect of area goes away. This suggests that the effect of area on the number of languages per capita is completely explained by the effect of the growing season – we have no evidence here for a direct causal effect of area, meaning that more room for expansion doesn’t say anything about the number of languages we expect to see, unless we know how habitable the land is first. In this model, we see a positive effect of the mean and negative effect of the SD as we expect. Now we can look at a possible interaction.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>m_int <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>        std.log.lang.per.cap <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>        mu <span class="ot">&lt;-</span> a <span class="sc">+</span> b_sgsl <span class="sc">*</span> sd.growing.season <span class="sc">+</span> b_mgsl <span class="sc">*</span> mean.growing.season <span class="sc">+</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>            b_intr <span class="sc">*</span> mean.growing.season <span class="sc">*</span> sd.growing.season <span class="sc">+</span> b_area <span class="sc">*</span> log.area,</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>        a <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">5</span>),</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>        b_mgsl <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>        b_sgsl <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>        b_intr <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>        b_area <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> d</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m_int)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               mean         sd        5.5%       94.5%
+a      -0.607666693 0.90104859 -2.04771636  0.83238298
+b_mgsl  0.128691044 0.03267891  0.07646384  0.18091825
+b_sgsl  0.179426213 0.16417241 -0.08295301  0.44180543
+b_intr -0.046560229 0.02012491 -0.07872372 -0.01439674
+b_area -0.007638564 0.15385114 -0.25352240  0.23824527
+sigma   0.565320615 0.04620557  0.49147519  0.63916604</code></pre>
+</div>
+</div>
+<p>It certainly looks like the results are different, which is qualitatively important to understand. But let’s first check the WAIC to get an idea of how much better our interaction model is doing.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">compare</span>(m_noint, m_int)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            WAIC       SE    dWAIC      dSE    pWAIC    weight
+m_int   139.8943 16.19209 0.000000       NA 6.821918 0.8329129
+m_noint 143.1071 16.09151 3.212828 4.717323 6.073994 0.1670871</code></pre>
+</div>
+</div>
+<p>OK, it’s only a bit better in terms of predictive accuracy, but the estimates are so different that we need to try and understand what’s going on here.</p>
+<p>When we include an interaction term, the effect of the standard deviation on its own largely goes away, and the effect of the negative is negative with almost all of the probability mass below 0. This suggests that by itself, the SD is not important for determining the number of languages – we need to know the mean first. I think we need to make a plot to really understand this effect.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the prpd</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>), <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>sd_vals <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.5</span>, <span class="dv">3</span>, <span class="fl">4.5</span>)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>sample_n <span class="ot">&lt;-</span> <span class="dv">500</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>ncolors <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>cols <span class="ot">&lt;-</span> viridisLite<span class="sc">::</span><span class="fu">plasma</span>(ncolors)</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>rank <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(<span class="fu">as.numeric</span>(<span class="fu">cut</span>(d<span class="sc">$</span>sd.growing.season, ncolors)))</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(sd_vals)) {</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>    sd <span class="ot">&lt;-</span> sd_vals[i]</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>    idx <span class="ot">&lt;-</span> <span class="fu">which</span>(dplyr<span class="sc">::</span><span class="fu">between</span>(d<span class="sc">$</span>sd.growing.season, sd <span class="sc">-</span> <span class="fl">1.5</span>, sd <span class="sc">+</span> <span class="fl">1.5</span>))</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot</span>(</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">#d$mean.growing.season[idx],</span></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>        <span class="co">#d$log.lang.per.cap[idx],</span></span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>        <span class="cn">NULL</span>, <span class="cn">NULL</span>,</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">12</span>),</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">ylim =</span> <span class="dv">10</span> <span class="sc">^</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">4</span>, <span class="dv">0</span>),</span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">xaxs =</span> <span class="st">"i"</span>,</span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">yaxs =</span> <span class="st">"i"</span>,</span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">xlab =</span> <span class="st">"Mean growing season length (months)"</span>,</span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">ylab =</span> <span class="st">"Number of languages per capita"</span>,</span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">pch =</span> <span class="dv">16</span>,</span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">log =</span> <span class="st">"y"</span></span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a>        <span class="co">#col = cols[rank[idx]]</span></span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mtext</span>(<span class="fu">paste0</span>(<span class="st">"SD of growing season = "</span>, sd))</span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate the posterior values</span></span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a>    post_data <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a>        <span class="at">mean.growing.season =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">12</span>, <span class="fl">0.1</span>),</span>
+<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a>        <span class="at">sd.growing.season =</span> sd,</span>
+<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a>        <span class="at">log.area =</span> <span class="fu">mean</span>(d<span class="sc">$</span>log.area)</span>
+<span id="cb38-34"><a href="#cb38-34" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb38-35"><a href="#cb38-35" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb38-36"><a href="#cb38-36" aria-hidden="true" tabindex="-1"></a>    mu <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">link</span>(m_int, post_data, <span class="at">n =</span> sample_n)</span>
+<span id="cb38-37"><a href="#cb38-37" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb38-38"><a href="#cb38-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>sample_n) {</span>
+<span id="cb38-39"><a href="#cb38-39" aria-hidden="true" tabindex="-1"></a>        <span class="fu">lines</span>(</span>
+<span id="cb38-40"><a href="#cb38-40" aria-hidden="true" tabindex="-1"></a>            <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">12</span>, <span class="fl">0.1</span>), <span class="dv">10</span> <span class="sc">^</span> (mu[i, ] <span class="sc">+</span> ybar),</span>
+<span id="cb38-41"><a href="#cb38-41" aria-hidden="true" tabindex="-1"></a>            <span class="at">col =</span> <span class="fu">col.alpha</span>(<span class="st">"black"</span>, <span class="fl">0.1</span>)</span>
+<span id="cb38-42"><a href="#cb38-42" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb38-43"><a href="#cb38-43" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb38-44"><a href="#cb38-44" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cp8_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>From the posterior predictions, we can understand the effect of the interaction a lot easier. The posterior predictions shown all use the average value of the log land area, but the main thing we want to understand here is the qualitative way the effect changes. When the SD value is small (the points shown in the top right panel are from 0 to 1.5), there is little variation in the length of the growing season, and the effect of the average length of the growing season on language diversity is positive. However, as the variation in growing season length increases, the effect becomes smaller and then negative, indicating that for highly variable areas, there is little effect of the average growing season on language diversity. For extremely variable areas, a long growing season may even lead to less language diversity, but we do not have enough data to say that conclusively.</p>
+</section>
+<section id="h5" class="level3" data-number="8.2.12">
+<h3 data-number="8.2.12" class="anchored" data-anchor-id="h5"><span class="header-section-number">8.2.12</span> 8H5</h3>
+<p>For this exercise, we’ll build a model using the <code>Wines2012</code> dataset.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"Wines2012"</span>)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> Wines2012</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>It looks like the wines are scores out of 20, so normally I would recommend a binomial (or beta-binomial) model here. But we don’t know that for sure and we haven’t learned that yet, so we’ll standardize the scores and model the <span class="math inline">\(z\)</span>-scores instead. This is a fairly interesting problem even with the small amount of data we have, and I imagine will make quite an interesting multilevel modeling problem later in the book.</p>
+<p>For this question, we just need to include effects of the judge and of the wine.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>dd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> rethinking<span class="sc">::</span><span class="fu">standardize</span>(d<span class="sc">$</span>score),</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">j =</span> rethinking<span class="sc">::</span><span class="fu">coerce_index</span>(d<span class="sc">$</span>judge),</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">w =</span> rethinking<span class="sc">::</span><span class="fu">coerce_index</span>(d<span class="sc">$</span>wine),</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">wine_amer =</span> d<span class="sc">$</span>wine.amer,</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">judge_amer =</span> d<span class="sc">$</span>judge.amer,</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">red =</span> <span class="fu">as.integer</span>(<span class="fu">ifelse</span>(d<span class="sc">$</span>flight <span class="sc">==</span> <span class="st">"red"</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">glimpse</span>(dd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 180
+Columns: 6
+$ y          &lt;dbl&gt; -1.57660412, -0.45045832, -0.07507639, 0.30030555, -2.32736…
+$ j          &lt;int&gt; 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,…
+$ w          &lt;int&gt; 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 1, 3, 5, 7, 9, 11, 13, 1…
+$ wine_amer  &lt;int&gt; 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0,…
+$ judge_amer &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
+$ red        &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,…</code></pre>
+</div>
+</div>
+<p>First we can try to visualize the data. It’s a bit difficult because we have two categorical variables and one continuous (perfect two-way anova design), but we can make two plots to try and see what’s going on.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>j2 <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">coerce_index</span>(d<span class="sc">$</span>judge) <span class="sc">|&gt;</span> <span class="fu">factor</span>()</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(d) <span class="sc">+</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> wine, <span class="at">y =</span> score) <span class="sc">+</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>j2) <span class="sc">+</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>    hgp<span class="sc">::</span><span class="fu">theme_ms</span>() <span class="sc">+</span></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>, <span class="at">angle =</span> <span class="dv">90</span>))</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span></span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(d) <span class="sc">+</span></span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> j2, <span class="at">y =</span> score) <span class="sc">+</span></span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>wine) <span class="sc">+</span></span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>    hgp<span class="sc">::</span><span class="fu">theme_ms</span>() <span class="sc">+</span></span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>)) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"judge"</span>)</span>
+<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a>cowplot<span class="sc">::</span><span class="fu">plot_grid</span>(p1, p2, <span class="at">nrow =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cp8_files/figure-html/unnamed-chunk-26-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Of course with data like these we just kind of have to eyeball them and make qualitative guesses as to what might be going on. But In general we can see there are some nicer judges (5, 3), and some meaner judges (4, 9), and one judge that got meaner as they tried more wines (8). However, most of the wines look fairly similar with the exception of a few like C2 and I2 that appeared to get worse bad reviews. I guess if we were following Agresti’s <em>Categorical Data Analysis</em> the next thing to do would be to get marginal and conditional mean scores, but we don’t need to do that now, we can start fitting models (which does that in an easier way, more or less).</p>
+<p>We’ll use (as usual) a normal likelihood – a <span class="math inline">\(t\)</span>-likelihood might be better if some of our judges or wines give outlying scores, but for now we’ll ignore that possibility. Next we need to assign priors. Fortunately for us this is easy and I’ll just assign a typical normal prior, I’m not too sure why it really needs to be justified. So let’s go ahead and fit the first model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">12312</span>)</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>m_w1 <span class="ot">&lt;-</span> rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>        y <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>        mu <span class="ot">&lt;-</span> a_w[w] <span class="sc">+</span> a_j[j],</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>        a_w[w] <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>        a_j[j] <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>        sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> dd</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">nrow =</span> <span class="dv">1</span>))</span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m_w1, <span class="at">depth =</span> <span class="dv">2</span>, <span class="at">pars =</span> <span class="fu">paste0</span>(<span class="st">"a_w["</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>, <span class="st">"]"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">precis_plot</span>()</span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a><span class="fu">mtext</span>(<span class="st">"Wine parameters"</span>)</span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m_w1, <span class="at">depth =</span> <span class="dv">2</span>, <span class="at">pars =</span> <span class="fu">paste0</span>(<span class="st">"a_j["</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>, <span class="st">"]"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">precis_plot</span>()</span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a><span class="fu">mtext</span>(<span class="st">"Judge parameters"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cp8_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Like we thought from looking at the plots, the judges appear to be more different from each other than the wines are. We probably also want to know about how the judges and wines interact, but since we don’t have any replicates, we can’t really get good answers for that question, all we can do is look at the score in each cell.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(d) <span class="sc">+</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> wine, <span class="at">y =</span> judge, <span class="at">fill =</span> score) <span class="sc">+</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_tile</span>() <span class="sc">+</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">19</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="fl">19.5</span>)) <span class="sc">+</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>    hgp<span class="sc">::</span><span class="fu">theme_ms</span>() <span class="sc">+</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">fill =</span> <span class="fu">guide_colorbar</span>(<span class="at">barwidth =</span> <span class="dv">15</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cp8_files/figure-html/unnamed-chunk-28-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="h6" class="level3" data-number="8.2.13">
+<h3 data-number="8.2.13" class="anchored" data-anchor-id="h6"><span class="header-section-number">8.2.13</span> 8H6</h3>
+<p>Now instead of looking at the variability across judges and across wines, we want to try and use the characteristics of the judges and wines to understand the scores. For this problem, we won’t include any interactions. Again, we’ll use standard priors, and the variables we’ll include as main effects are <code>flight</code> (whether the wine is red or white), <code>wine.amer</code> (if the wine was made in America), and <code>judge.amer</code> (whether the judge is American).</p>
+<p>For whatever reason, the book says to use indicator coding for this problem and the next problem (coding interactions between two categorical variables is annoying somehow, I tried it and couldn’t figure it out). So we’ll do that.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>m_w2 <span class="ot">&lt;-</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>    rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>            y <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>            mu <span class="ot">&lt;-</span> a <span class="sc">+</span> a_wa <span class="sc">*</span> wine_amer <span class="sc">+</span> a_ja <span class="sc">*</span> judge_amer <span class="sc">+</span> a_red <span class="sc">*</span> red,</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>            a <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>            a_wa <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>            a_ja <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>            a_red <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>            sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> dd</span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m_w2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              mean         sd        5.5%      94.5%
+a     -0.020886459 0.15873255 -0.27457173 0.23279881
+a_wa  -0.191038758 0.14889489 -0.42900156 0.04692404
+a_ja   0.247752111 0.14683135  0.01308725 0.48241697
+a_red -0.004204578 0.14595115 -0.23746271 0.22905355
+sigma  0.982341917 0.05156316  0.89993403 1.06474980</code></pre>
+</div>
+</div>
+<p>Overall, the red and white wines were judged similarly without a large discrepancy between groups. American judges tended to be more generous, and American wines tended to be rated slightly worse. However, we have a great deal of uncertainty about all of these parameters.</p>
+</section>
+<section id="h7" class="level3" data-number="8.2.14">
+<h3 data-number="8.2.14" class="anchored" data-anchor-id="h7"><span class="header-section-number">8.2.14</span> 8H7</h3>
+<p>Apparently doing the interactions IS the reason for using indicator coding here, quap I guess can’t handle all the stuff that Stan can. Now we want to include all of the third-level interactions that we can make.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>m_w3 <span class="ot">&lt;-</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>    rethinking<span class="sc">::</span><span class="fu">quap</span>(</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">flist =</span> <span class="fu">alist</span>(</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>            y <span class="sc">~</span> <span class="fu">dnorm</span>(mu, sigma),</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>            mu <span class="ot">&lt;-</span> a <span class="sc">+</span> a_wa <span class="sc">*</span> wine_amer <span class="sc">+</span> a_ja <span class="sc">*</span> judge_amer <span class="sc">+</span> a_red <span class="sc">*</span> red <span class="sc">+</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>                <span class="co"># American wine/american judge</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>                g_wawj <span class="sc">*</span> wine_amer <span class="sc">*</span> judge_amer <span class="sc">+</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>                <span class="co"># American red wines</span></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>                g_rwa <span class="sc">*</span> wine_amer <span class="sc">*</span> red <span class="sc">+</span></span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>                <span class="co"># Red wines / american judge</span></span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>                g_rja <span class="sc">*</span> judge_amer <span class="sc">*</span> red,</span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>            a <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a>            a_wa <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a>            a_ja <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a>            a_red <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a>            g_wawj <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb47-17"><a href="#cb47-17" aria-hidden="true" tabindex="-1"></a>            g_rwa <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb47-18"><a href="#cb47-18" aria-hidden="true" tabindex="-1"></a>            g_rja <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb47-19"><a href="#cb47-19" aria-hidden="true" tabindex="-1"></a>            sigma <span class="sc">~</span> <span class="fu">dexp</span>(<span class="dv">1</span>)</span>
+<span id="cb47-20"><a href="#cb47-20" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> dd</span>
+<span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb47-23"><a href="#cb47-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-24"><a href="#cb47-24" aria-hidden="true" tabindex="-1"></a>rethinking<span class="sc">::</span><span class="fu">precis</span>(m_w3, <span class="at">depth =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              mean         sd       5.5%      94.5%
+a      -0.21373267 0.21651035 -0.5597580  0.1322927
+a_wa    0.15272583 0.26069131 -0.2639092  0.5693609
+a_ja    0.29244412 0.26673524 -0.1338503  0.7187386
+a_red   0.31208633 0.27442703 -0.1265011  0.7506737
+g_wawj -0.11070543 0.29175737 -0.5769901  0.3555792
+g_rwa  -0.56956098 0.29026516 -1.0334608 -0.1056612
+g_rja   0.04190135 0.28649695 -0.4159761  0.4997788
+sigma   0.97130887 0.05098788  0.8898204  1.0527973</code></pre>
+</div>
+</div>
+<p>Usually I hate looking at tables, but this one is not too bad because the trend is pretty obvious. All of the parameters are zero-ish (lots of probably mass on either side of 0), except for one, which is <code>g_rwa</code>. This is the interaction term between American wines and red wines – so it looks like American red wines were much worse on average than non-american and/or non-red wines.</p>
+<p>In the solutions guide, Richard actually gives a good reason for using more skeptical priors for the interaction terms than on the main effect terms. I need to remember that for the future.</p>
+<!-- END OF FILE -->
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = false;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    const typesetMath = (el) => {
+      if (window.MathJax) {
+        // MathJax Typeset
+        window.MathJax.typeset([el]);
+      } else if (window.katex) {
+        // KaTeX Render
+        var mathElements = el.getElementsByClassName("math");
+        var macros = [];
+        for (var i = 0; i < mathElements.length; i++) {
+          var texText = mathElements[i].firstChild;
+          if (mathElements[i].tagName == "SPAN") {
+            window.katex.render(texText.data, mathElements[i], {
+              displayMode: mathElements[i].classList.contains('display'),
+              throwOnError: false,
+              macros: macros,
+              fleqn: false
+            });
+          }
+        }
+      }
+    }
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        typesetMath(container);
+        return container.innerHTML
+      } else {
+        typesetMath(note);
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      typesetMath(note);
+      return note.innerHTML;
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./cp7.html" class="pagination-link  aria-label=" &lt;span="" compass&lt;="" span&gt;"="">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Ulysses’ Compass</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./references.html" class="pagination-link" aria-label="References">
+        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

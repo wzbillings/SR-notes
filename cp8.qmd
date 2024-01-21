@@ -7,7 +7,10 @@ editor_options:
 # Conditional Manatees
 
 ```{r setup, include = TRUE}
+#| message: false
+#| warning: false
 library(rethinking)
+library(dagitty)
 ```
 
 This chapter is a brief introduction to the concept of conditional inference,
@@ -238,5 +241,774 @@ simulation shown here. The slope priors are regularizing and skeptical,
 so we think that a smaller effect is more likely *a priori* -- if the effects
 are large, the data can demonstrate that for us.
 
+### 8H1
+
+Now we want to add the *bed* variable to the tulips example, which we'll
+denote with $B_i$. We only want to include the bed effect as a main effect,
+which means we need to have a different intercept for each bed -- so our
+model will assume that each bed can start at a different baseline, but the
+effects of water, shade, and their interaction, are homogeneous across the
+beds. This is probably an OK assumption in the context of a controlled
+greenhouse setting.
+
+The model will be as follows.
+
+$$
+\begin{aligned}
+y_i &\sim \text{Normal} \left(\mu_i, \sigma\right) \\
+\mu_i &= \alpha_{B[i]} + \beta_W W_i - \beta_S S_i - \gamma_{SW} S_iW_i \\
+\alpha_{B[i]} &\sim \text{Normal}(0.5, 0.25) \\
+\beta_W &\sim \text{Log-normal}(-3, 1) \\
+\beta_S &\sim \text{Log-normal}(-3, 1) \\
+\gamma_{SW} &\sim \text{Log-normal}(-3, 1) \\
+\sigma &\sim \text{Exponential}(1)
+\end{aligned}
+$$
+
+That is, we'll use the same constrained, regularizing priors, as we did for the
+previous problem, but we'll have a separate intercept for each bed. In reality,
+it would probably be good to have the intercept parameters be correlated as
+well, but we haven't gone over that in the book yet. Let's go ahead and fit the
+model.
+
+```{r}
+set.seed(370)
+# For the index coding to work, we need a numeric version of the beds.
+d$b <- as.integer(d$bed)
+
+# Fit the model
+m_8h1 <- rethinking::quap(
+	alist(
+		blooms_std ~ dnorm(mu, sigma),
+		mu <- a[b] + bw * water_cent - bs * shade_cent -
+			bws * water_cent * shade_cent,
+		a[b] ~ dnorm(0.5, 0.25),
+		bw  ~ dlnorm(-3, 1),
+		bs  ~ dlnorm(-3, 1),
+		bws ~ dlnorm(-3, 1),
+		sigma ~ dexp(1)
+	),
+	data = d
+)
+
+rethinking::precis(m_8h1, depth = 2)
+```
+
+From the precis, we can see that the first bed (bed 1, with parameter `a[1]`)
+has a lower intercept than the other two beds -- maybe this bed is next to
+a drafty space, is the first bed in the water connection and gets the pipe
+sludge, or just had less bloomds for some reason. But after we account for
+the different baselines between beds, the estimates of the parameter effects
+are similar to the last model, so this should just improve the accuracy of
+our model predictions for the first bed. We can plot the predictions to see.
+
+```{r}
+# Plot the prpd
+par(mfrow = c(1, 3))
+
+cols <- c("#E69F00", "#56B4E9", "#009E73")
+
+for (s in -1:1) {
+	idx <- which(d$shade_cent == s)
+	plot(
+		d$water_cent[idx],
+		d$blooms_std[idx],
+		xlim = c(-1, 1),
+		ylim = c(-0.5, 1.5),
+		xlab = "water",
+		ylab = "blooms",
+		pch = 16,
+		col = cols[d$b[idx]]
+	)
+	abline(h = 0, lty = 2)
+	abline(h = 1, lty = 2)
+	mtext(paste0("shade = ", s))
+	
+	for (bd in 1:3) {
+		mu <- rethinking::link(
+			m_8h1,
+			data = data.frame(shade_cent = s, water_cent = -1:1, b = bd)
+		)
+		for (i in 1:20) {
+			lines(
+				-1:1, mu[i, ],
+				col = col.alpha(cols[bd], 0.3)
+			)
+		}
+	}
+}
+
+legend("topright", c("Bed a", "Bed b", "Bed c"), col = cols, lty = 1)
+```
+
+While it's actually quite difficult to make statistical conclusions without
+multiple replicates (here we have only one measurement per bed per treatment),
+we can see the clear difference between bed a and the other two beds in the
+model predictions. However, it also appears that our model predictions may
+not capture the true effect, as from the observed data it seems plausible that
+the effects of water and shade vary across beds. We would need actual
+replicates to be more certain of that, though.
+
+### 8H2
+
+Now we can compare the models with and without bed using WAIC.
+
+```{r}
+rethinking::compare(m_8m4, m_8h1)
+```
+
+We see that the WAIC is smaller for the model with bed included, although
+the difference is small. This implies that adding the bed variable as a main
+effect increases the accuracy of our posterior predictions, although the
+improvement is not spectacular. As we saw by looking at summaries of the
+posterior distribution in the previous exercise, the difference in the estimated
+intercept for bed A vs. bed b and bed c, without any major changes in the
+estimates of the slope parameters, should account for this difference.
+
+### 8H3
+
+For this question, we'll focus on the `ruggedness` data.
+
+```{r}
+data("rugged")
+# Repeating data processing steps from the book
+d <- rugged
+d$log_gdp <- log(d$rgdppc_2000)
+dd <- d[complete.cases(d$rgdppc_2000), ]
+dd$log_gdp_std <- dd$log_gdp / mean(dd$log_gdp)
+dd$rugged_std <- dd$rugged / max(dd$rugged)
+
+dd$cid <- ifelse(dd$cont_africa == 1, 1, 2)
+```
+
+Now we need to recreate model `m8.5` from the chapter. Well, at least that's
+what the book says to do, but model `m8.5` is about the tulips example, so
+we'll recreate `m8.3` instead.
+
+```{r}
+m8.3 <- rethinking::quap(
+	alist(
+		log_gdp_std ~ dnorm(mu, sigma),
+		mu <- a[cid] + b[cid] * (rugged_std - 0.215),
+		a[cid] ~ dnorm(1, 0.1),
+		b[cid] ~ dnorm(0, 0.3),
+		sigma ~ dexp(1)
+	),
+	data = dd
+)
+rethinking::precis(m8.3, depth = 2)
+```
+
+We got similar results to what's in the book, which is good. Now we want to
+examine the model with PSIS to determine if the Seychelles are influential
+on the estimation of parameters for the Africa group.
+
+```{r}
+set.seed(370)
+m8.3_psis <- rethinking::PSIS(m8.3, pointwise = TRUE, n = 20000)
+rownames(m8.3_psis) <- dd$isocode
+psis_sort <- m8.3_psis[order(m8.3_psis$k, decreasing = TRUE), ]
+psis_sort |> head()
+```
+
+The most influential country on the model fit, judging by the Pareto $k$ values,
+are Lesotho and the Seychelles, which are both highly rugged nations in Africa.
+
+```{r}
+par(mfrow = c(1, 1))
+dd_sorted <- dd[order(m8.3_psis$k, decreasing = TRUE), ]
+plot(
+	dd_sorted$rugged_std, psis_sort$k,
+	xlab = "Ruggedness as prop. of maximum",
+	ylab = "PSIS Pareto k value"
+)
+```
+
+We can see that highly rugged nations have the largest Pareto $k$ values,
+indicating that they are the most influential variables. We also know that
+these values have a high leverage in a linear regression model, so that makes
+sense.
+
+Now that we know these nations with high ruggedness are having an oversized
+effect on the estimated trend, we can try to use robust regression to
+lower their influence. We'll use the same model, but with a Student's $t$
+distribution likelihood (with 2 d.f.) instead of a Normal likelihood. Personally
+I prefer 3 degrees of freedom (the variance of the distribution is infinite if
+the d.f. is not larger than 2, which is a prior belief that never makes sense
+in a physical context to me), but for now I'll do what the textbook says.
+
+```{r}
+m8.3_r <- rethinking::quap(
+	alist(
+		log_gdp_std ~ dstudent(nu = 2, mu, sigma),
+		mu <- a[cid] + b[cid] * (rugged_std - 0.215),
+		a[cid] ~ dnorm(1, 0.1),
+		b[cid] ~ dnorm(0, 0.3),
+		sigma ~ dexp(1)
+	),
+	data = dd
+)
+rethinking::precis(m8.3_r, depth = 2)
+```
+
+We can see by comparing the two model summaries that a few of the
+parameters are slightly different. Let's now compare the models using PSIS.
+
+```{r}
+set.seed(12312)
+rethinking::compare(m8.3, m8.3_r, func = PSIS, n = 20000)
+```
+
+Here, we can see that the non-robust model actually appears to be giving us
+worse predictions than the non-robust model. However, we know that PSIS is
+just a measure of predictive performance, so it's possible that our
+robust model is still a better conceptual model that provides more accurate
+inferences at the cost of appearing to underfit the data. Since the
+two models have every similar numbers of parameters, predictive accuracy
+criteria are likely to be more sensitive to this kind of "underfitting", when
+we actually know outside of the statistics world that we're reducing the
+impact of outlying values.
+
+Anyways, we can also look at the individual pareto $k$ values for the new
+model.
+
+```{r}
+set.seed(370)
+m8.3r_psis <- rethinking::PSIS(m8.3_r, pointwise = TRUE, n = 20000)
+rownames(m8.3r_psis) <- dd$isocode
+psis_sort_r <- m8.3r_psis[order(m8.3r_psis$k, decreasing = TRUE), ]
+psis_sort_r |> head()
+```
+
+Now we can see that the pareto $k$ values are all much lower. While Lesotho
+still appears in the top 6, it is overall much less influential, and Seychelles
+no longer appears in the top 6.
+
+### 8H4
+
+For this problem, we'll use the `nettle` data to examine the hypothesis
+that higher food security leads to a higher language diversity in a region.
+
+First we need to construct the outcome variable.
+
+```{r}
+data(nettle)
+d <- nettle
+d$lang.per.cap <- d$num.lang / d$k.pop
+
+# The log of this will be our actual outcome variable
+d$log.lang.per.cap <- log10(d$lang.per.cap)
+
+# Center the outcome
+ybar <- mean(d$log.lang.per.cap)
+d$std.log.lang.per.cap <- d$log.lang.per.cap - ybar
+
+# We also need the log of the area
+d$log.area <- log10(d$area)
+```
+
+Since I don't really know anything about this problem other than what the
+textbook tells me, I'll follow the specified steps. The effects we want to
+evaluate here are the effects of `mean.growing.season`, which we'll call $M$,
+and `sd.growing.season`, on our model. We also need to consider $A$, the log of
+`area`, as a potential cause. I'm not sure how we would work in the number of
+weather stations in our model, so for now we'll leave that alone -- although
+there is a noticeable trend in the data that as the number of measurement
+stations increased, so did the SD of the growing season length. So in a real
+academic paper, we would definitely need to think about how to model that.
+
+First let's look at the bivariate relationship between each of these values and
+the outcome.
+
+```{r}
+layout(matrix(c(1, 2, 3), nrow = 1))
+plot(
+	d$mean.growing.season, d$log.lang.per.cap,
+	xlab = "Mean length of growing season (months)",
+	ylab = "log10 number of langauges per capita"
+)
+plot(
+	d$sd.growing.season, d$log.lang.per.cap,
+	xlab = "Standard deviation of length of growing season (months)",
+	ylab = ""
+)
+plot(
+	d$log.area, d$log.lang.per.cap,
+	xlab = "log10 area of country (sq. km.)",
+	ylab = ""
+)
+```
+
+In general, none of these trends looks particularly strong, although
+there appear to be some trends with the growing season variables.
+
+Now, let's try to fit a simple model that models the log languages per
+capita based on the mean length of the growing season. We'll use a normal
+likelihood since the outcome variable is on the log scale. Since we aren't
+using a count model, which would naturally constrict the domain of the
+outcome variable, I also chose to center the outcome variable before
+modeling to make assigning a prior for the intercept feasible.
+
+For the intercept, we'll use a generic prior centered at 0 (the mean after
+standardization). For the effect of the mean growing season length, we'll
+use a regularizing, skeptical prior centered around 0.
+
+```{r}
+# Set seed for all of our models in this section
+set.seed(370)
+m_mgs <- rethinking::quap(
+	flist = alist(
+		std.log.lang.per.cap ~ dnorm(mu, sigma),
+		mu <- a + b_mgsl * mean.growing.season,
+		a ~ dnorm(0, 5),
+		b_mgsl ~ dnorm(0, 1),
+		sigma ~ dexp(1)
+	),
+	data = d
+)
+rethinking::precis(m_mgs)
+```
+
+We can see from the summary that there is a small prior effect of mean
+growing season length on the outcome. Now, let's check whether the
+area should be a coefficient in this model as well.
+
+```{r}
+m_mgs_a <- rethinking::quap(
+	flist = alist(
+		std.log.lang.per.cap ~ dnorm(mu, sigma),
+		mu <- a + b_mgsl * mean.growing.season + b_area * log.area,
+		a ~ dnorm(0, 5),
+		b_mgsl ~ dnorm(0, 1),
+		b_area ~ dnorm(0, 1),
+		sigma ~ dexp(1)
+	),
+	data = d
+)
+rethinking::precis(m_mgs_a)
+```
+
+The effect of the area variable is negative and a large amount of the
+density lies below zero, which suggests that the area could be a real effect that
+we need to control for. Controlling for the area size also affects out estimate
+of the effect of mean growing season length. Let's compare the models via WAIC
+and see if the area improves posterior predictions.
+
+```{r}
+rethinking::compare(m_mgs, m_mgs_a)
+```
+
+The WAICs are extremely similar, and the WAIC for the model without area
+is slightly better, so I don't think we need area in this model. If we think
+about the problem casually, I don't understand why the area would be a
+confounder or a collider in this situation, because the area doesn't
+casually determine the mean growing season length in a country. However, larger
+countries should have more variation in the growing season length (since larger
+area overall means they can cover more areas of varying latitude).
+But, I think that a larger area should mean there is more room for multiple
+communities to exist and become isolated, so a larger country should also have
+more languages on average.
+
+So I think the DAG should look something like this.
+
+```{r}
+layout(c(1))
+dag <- dagitty::dagitty(
+	'DAG {
+	"languages" <- "mean length"
+	"languages" <- "SD length" <- "area"
+	"languages" <- "area"
+	}'
+)
+coordinates(dag) <- list(
+	x = c("languages" = 0, "mean length" = 1, "SD length" = -1, "area" = -1),
+	y = c("languages" = 0, "mean length" = 0, "SD length" = 0.5, "area" = -0.5)
+)
+plot(dag)
+```
+
+So, in our final model we'll need to include area anyways, so we might as
+well leave it in there for now.
+
+Next we want to examine the effect of the SD of growing season length on
+languages. The `area` variable is a confounder in this casual structure, so
+we need to include that as well to avoid getting a biased estimate.
+
+```{r}
+m_sgs_a <- rethinking::quap(
+	flist = alist(
+		std.log.lang.per.cap ~ dnorm(mu, sigma),
+		mu <- a + b_sgsl * sd.growing.season + b_area * log.area,
+		a ~ dnorm(0, 5),
+		b_sgsl ~ dnorm(0, 1),
+		b_area ~ dnorm(0, 1),
+		sigma ~ dexp(1)
+	),
+	data = d
+)
+rethinking::precis(m_sgs_a)
+```
+
+We see that the SD of growing season length does appear to have a negative
+effective on the overall number of languages. We cannot rule out entirely
+the lack of an effect (assuming our causal structure is correct and
+linear models are appropriate), but there is likely to be a negative
+effect of the SD of growing length on number of languages.
+
+So far we've seen that an average longer growing season leads to more languages
+per capita, meaning that more food abundance leads to smaller, more isolated
+social groups and the development of more languages. However, higher variation
+in the growing season length leads to lower languages per capita, suggesting
+the need to form larger social networks for insurance against short growing
+seasons. In both models, we saw a negative effect of area, indicating that
+as a country becomes larger, the number of languages becomes smaller, which
+is the opposite of what I would have thought. Perhaps larger countries, on
+average, have shorter growing seasons? We can examine that effect quickly.
+
+```{r}
+layout(matrix(c(1, 2), nrow = 1))
+plot(
+	d$mean.growing.season, d$log.area,
+	xlab = "Mean length of growing season (months)",
+	ylab = "log10 area of country (sq. km.)"
+)
+plot(
+	d$sd.growing.season, d$log.area,
+	xlab = "Standard deviation of length of growing season (months)",
+	ylab = ""
+)
+```
+
+Interestingly, we can see slight patterns in both trends. Larger countries
+seem to have slightly smaller average growing seasons, and more uncertainty
+in their growing seasons. I think the effect on the mean length of the
+growing season is quite small, and is likely to not be causal, although we
+could postulate that larger countries tend to cover more sparsely inhabited
+territory which has a shorter growing season. There is a definite trend in the
+standard deviation of the growing season though -- it's hard to tell if this
+is an effect of covering more latitude areas, or a function of a number of
+measuring systems. We would need a variable on the range of latitude covered
+by each country to disentangle those effects.
+
+Anyways, now we can fit the main model. We'll fit two models that include all
+three variables. One will include just main effects, and the other will include
+an interaction between the effects of mean and SD of growing season length.
+Then we can compare those models.
+
+```{r}
+m_noint <- rethinking::quap(
+	flist = alist(
+		std.log.lang.per.cap ~ dnorm(mu, sigma),
+		mu <- a + b_sgsl * sd.growing.season + b_mgsl * mean.growing.season +
+			b_area * log.area,
+		a ~ dnorm(0, 5),
+		b_mgsl ~ dnorm(0, 1),
+		b_sgsl ~ dnorm(0, 1),
+		b_area ~ dnorm(0, 1),
+		sigma ~ dexp(1)
+	),
+	data = d
+)
+
+rethinking::precis(m_noint)
+```
+
+After including both the mean and SD of growing season length in the
+model, the effect of area goes away. This suggests that the effect of area on
+the number of languages per capita is completely explained by the
+effect of the growing season -- we have no evidence here for a direct causal
+effect of area, meaning that more room for expansion doesn't say anything about
+the number of languages we expect to see, unless we know how habitable the
+land is first. In this model, we see a positive effect of the mean and
+negative effect of the SD as we expect. Now we can look at a possible
+interaction.
+
+```{r}
+m_int <- rethinking::quap(
+	flist = alist(
+		std.log.lang.per.cap ~ dnorm(mu, sigma),
+		mu <- a + b_sgsl * sd.growing.season + b_mgsl * mean.growing.season +
+			b_intr * mean.growing.season * sd.growing.season + b_area * log.area,
+		a ~ dnorm(0, 5),
+		b_mgsl ~ dnorm(0, 1),
+		b_sgsl ~ dnorm(0, 1),
+		b_intr ~ dnorm(0, 1),
+		b_area ~ dnorm(0, 1),
+		sigma ~ dexp(1)
+	),
+	data = d
+)
+
+rethinking::precis(m_int)
+```
+
+It certainly looks like the results are different, which is qualitatively
+important to understand. But let's first check the WAIC to get an idea of
+how much better our interaction model is doing.
+
+```{r}
+rethinking::compare(m_noint, m_int)
+```
+
+OK, it's only a bit better in terms of predictive accuracy, but the estimates
+are so different that we need to try and understand what's going on here.
+
+When we include an interaction term, the effect of the standard deviation on its
+own largely goes away, and the effect of the negative is negative with almost
+all of the probability mass below 0. This suggests that by itself, the SD
+is not important for determining the number of languages -- we need to know
+the mean first. I think we need to make a plot to really understand this
+effect.
+
+```{r}
+# Plot the prpd
+layout(matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE))
+
+sd_vals <- c(0, 1.5, 3, 4.5)
+sample_n <- 500
+ncolors <- 10
+cols <- viridisLite::plasma(ncolors)
+rank <- as.factor(as.numeric(cut(d$sd.growing.season, ncolors)))
+
+for (i in 1:length(sd_vals)) {
+	sd <- sd_vals[i]
+	idx <- which(dplyr::between(d$sd.growing.season, sd - 1.5, sd + 1.5))
+	plot(
+		#d$mean.growing.season[idx],
+		#d$log.lang.per.cap[idx],
+		NULL, NULL,
+		xlim = c(0, 12),
+		ylim = 10 ^ c(-4, 0),
+		xaxs = "i",
+		yaxs = "i",
+		xlab = "Mean growing season length (months)",
+		ylab = "Number of languages per capita",
+		pch = 16,
+		log = "y"
+		#col = cols[rank[idx]]
+	)
+	mtext(paste0("SD of growing season = ", sd))
+	
+	# Calculate the posterior values
+	post_data <- expand.grid(
+		mean.growing.season = seq(0, 12, 0.1),
+		sd.growing.season = sd,
+		log.area = mean(d$log.area)
+	)
+	
+	mu <- rethinking::link(m_int, post_data, n = sample_n)
+	
+	for (i in 1:sample_n) {
+		lines(
+			seq(0, 12, 0.1), 10 ^ (mu[i, ] + ybar),
+			col = col.alpha("black", 0.1)
+		)
+	}
+}
+```
+
+From the posterior predictions, we can understand the effect of the interaction
+a lot easier. The posterior predictions shown all use the average value of the
+log land area, but the main thing we want to understand here is the qualitative
+way the effect changes. When the SD value is small (the points shown in the
+top right panel are from 0 to 1.5), there is little variation in the length
+of the growing season, and the effect of the average length of the growing
+season on language diversity is positive. However, as the variation in
+growing season length increases, the effect becomes smaller and then negative,
+indicating that for highly variable areas, there is little effect of the
+average growing season on language diversity. For extremely variable areas,
+a long growing season may even lead to less language diversity, but we do
+not have enough data to say that conclusively.
+
+
+### 8H5
+
+For this exercise, we'll build a model using the `Wines2012` dataset.
+
+```{r}
+data("Wines2012")
+d <- Wines2012
+```
+
+It looks like the wines are scores out of 20, so normally I would recommend
+a binomial (or beta-binomial) model here. But we don't know that for sure
+and we haven't learned that yet, so we'll standardize the scores and
+model the $z$-scores instead. This is a fairly interesting problem even
+with the small amount of data we have, and I imagine will make quite an
+interesting multilevel modeling problem later in the book.
+
+For this question, we just need to include effects of the judge and of the
+wine.
+
+```{r}
+dd <- data.frame(
+	y = rethinking::standardize(d$score),
+	j = rethinking::coerce_index(d$judge),
+	w = rethinking::coerce_index(d$wine),
+	wine_amer = d$wine.amer,
+	judge_amer = d$judge.amer,
+	red = as.integer(ifelse(d$flight == "red", 1, 0))
+)
+dplyr::glimpse(dd)
+```
+
+First we can try to visualize the data. It's a bit difficult because we have
+two categorical variables and one continuous (perfect two-way anova design),
+but we can make two plots to try and see what's going on.
+
+```{r}
+d$j2 <- rethinking::coerce_index(d$judge) |> factor()
+p1 <-
+	ggplot(d) +
+	aes(x = wine, y = score) +
+	geom_point() +
+	facet_wrap(~j2) +
+	hgp::theme_ms() +
+	theme(axis.text = element_text(size = 8, angle = 90))
+
+p2 <-
+	ggplot(d) +
+	aes(x = j2, y = score) +
+	geom_point() +
+	facet_wrap(~wine) +
+	hgp::theme_ms() +
+	theme(axis.text = element_text(size = 10)) + labs(x = "judge")
+
+cowplot::plot_grid(p1, p2, nrow = 1)
+```
+
+Of course with data like these we just kind of have to eyeball them and make
+qualitative guesses as to what might be going on. But In general we can
+see there are some nicer judges (5, 3), and some meaner judges (4, 9), and
+one judge that got meaner as they tried more wines (8). However, most of the
+wines look fairly similar with the exception of a few like C2 and I2 that
+appeared to get worse bad reviews. I guess if we were following Agresti's
+*Categorical Data Analysis* the next thing to do would be to get marginal
+and conditional mean scores, but we don't need to do that now, we can
+start fitting models (which does that in an easier way, more or less).
+
+We'll use (as usual) a normal likelihood -- a $t$-likelihood might be better
+if some of our judges or wines give outlying scores, but for now we'll
+ignore that possibility. Next we need to assign priors. Fortunately for
+us this is easy and I'll just assign a typical normal prior, I'm not too
+sure why it really needs to be justified. So let's go ahead and fit the
+first model.
+
+```{r}
+set.seed(12312)
+m_w1 <- rethinking::quap(
+	flist = alist(
+		y ~ dnorm(mu, sigma),
+		mu <- a_w[w] + a_j[j],
+		a_w[w] ~ dnorm(0, 2),
+		a_j[j] ~ dnorm(0, 2),
+		sigma ~ dexp(1)
+	),
+	data = dd
+)
+
+layout(matrix(c(1, 2), nrow = 1))
+rethinking::precis(m_w1, depth = 2, pars = paste0("a_w[", 1:20, "]")) |>
+	precis_plot()
+mtext("Wine parameters")
+rethinking::precis(m_w1, depth = 2, pars = paste0("a_j[", 1:9, "]")) |>
+	precis_plot()
+mtext("Judge parameters")
+```
+
+Like we thought from looking at the plots, the judges appear to be more
+different from each other than the wines are. We probably also want to know
+about how the judges and wines interact, but since we don't have any replicates,
+we can't really get good answers for that question, all we can do is look
+at the score in each cell.
+
+```{r}
+ggplot(d) +
+	aes(x = wine, y = judge, fill = score) +
+	geom_tile() +
+	scale_fill_viridis_c(breaks = c(7, 10, 15, 19), limits = c(7, 19.5)) +
+	hgp::theme_ms() +
+	guides(fill = guide_colorbar(barwidth = 15))
+```
+
+### 8H6
+
+Now instead of looking at the variability across judges and across wines, we
+want to try and use the characteristics of the judges and wines to understand
+the scores. For this problem, we won't include any interactions. Again,
+we'll use standard priors, and the variables we'll include as main effects are
+`flight` (whether the wine is red or white), `wine.amer` (if the wine was
+made in America), and `judge.amer` (whether the judge is American).
+
+For whatever reason, the book says to use indicator coding for this problem and
+the next problem (coding interactions between two categorical variables
+is annoying somehow, I tried it and couldn't figure it out). So we'll do that.
+
+```{r}
+m_w2 <-
+	rethinking::quap(
+		flist = alist(
+			y ~ dnorm(mu, sigma),
+			mu <- a + a_wa * wine_amer + a_ja * judge_amer + a_red * red,
+			a ~ dnorm(0, 2),
+			a_wa ~ dnorm(0, 2),
+			a_ja ~ dnorm(0, 2),
+			a_red ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = dd
+	)
+
+rethinking::precis(m_w2)
+```
+
+Overall, the red and white wines were judged similarly without a large discrepancy
+between groups. American judges tended to be more generous, and American wines
+tended to be rated slightly worse. However, we have a great deal of uncertainty
+about all of these parameters.
+
+### 8H7
+
+Apparently doing the interactions IS the reason for using indicator coding
+here, quap I guess can't handle all the stuff that Stan can. Now we want
+to include all of the third-level interactions that we can make.
+
+```{r}
+m_w3 <-
+	rethinking::quap(
+		flist = alist(
+			y ~ dnorm(mu, sigma),
+			mu <- a + a_wa * wine_amer + a_ja * judge_amer + a_red * red +
+				# American wine/american judge
+				g_wawj * wine_amer * judge_amer +
+				# American red wines
+				g_rwa * wine_amer * red +
+				# Red wines / american judge
+				g_rja * judge_amer * red,
+			a ~ dnorm(0, 2),
+			a_wa ~ dnorm(0, 2),
+			a_ja ~ dnorm(0, 2),
+			a_red ~ dnorm(0, 2),
+			g_wawj ~ dnorm(0, 2),
+			g_rwa ~ dnorm(0, 2),
+			g_rja ~ dnorm(0, 2),
+			sigma ~ dexp(1)
+		),
+		data = dd
+	)
+
+rethinking::precis(m_w3, depth = 2)
+```
+
+Usually I hate looking at tables, but this one is not too bad because the
+trend is pretty obvious. All of the parameters are zero-ish (lots of
+probably mass on either side of 0), except for one, which is `g_rwa`. This is
+the interaction term between American wines and red wines -- so it looks like
+American red wines were much worse on average than non-american and/or non-red
+wines.
+
+In the solutions guide, Richard actually gives a good reason for using more
+skeptical priors for the interaction terms than on the main effect terms.
+I need to remember that for the future.
 
 <!-- END OF FILE -->
