@@ -1,0 +1,59 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Conditional Manatees
+
+```{r setup, include = TRUE}
+#| message: false
+#| warning: false
+library(rethinking)
+library(dagitty)
+```
+
+This chapter covers Markov Chain Monte Carlo, Gibbs sampling, Hamiltonian
+Monte Carlo, and the HMC implementation in `rethinking`.
+
+## Chapter notes
+
+
+
+## Exercises
+
+### 9E1
+
+The simple Metropolis algorithm requires that the proposal distribution must
+be symmetric.
+
+### 9E2
+
+Gibbs sampling achieves better efficiency than the simple Metropolis algorithm
+by using conjugate prior distributions to adapt the proposal distribution
+as the parameters change. This allows a Gibbs sampler to make intelligent
+jumps around the posterior distribution, rather than blindly guessing. However,
+Gibbs samplers require the use of these conjugate priors, and often fail
+to retain their efficiency for high-dimensional, multilevel parameter spaces.
+
+### 9E3
+
+Hamiltonian Monte Carlo cannot handle discrete parameters, because the gradient
+is not continuous and the physics simulation that generates proposals will
+not be able to move along a discrete parameter space.
+
+### 9E4
+
+The effective number of samples is the number of samples from the posterior
+adjusted for the autocorrelation between successive samples. Autocorrelated
+samples do not provide as much information as independent samples, and so
+multiple highly autocorrelated draws give us less information than the reported
+sample size would have if the draws were independent. Conversely, anticorrelated
+samples provide more information than the corresponding number of independent
+samples.
+
+### 9E5
+
+If the chains are mixing correctly, $\hat{R}$ should approach 1.
+
+<!-- END OF FILE -->

@@ -32,6 +32,7 @@ book:
         - cp6.qmd
         - cp7.qmd
         - cp8.qmd
+        - cp9.qmd
     # - part: "2023 Homework"
     #   chapters:
     #     - week1.qmd
